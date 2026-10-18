@@ -60,6 +60,25 @@ class Review(unittest.TestCase):
             self.assertIn(tool, cmd.split("--disallowedTools")[1])
         self.assertNotIn("--allowedTools", cmd)  # pre-approval alone doesn't restrict anything
 
+    def test_check_output_and_checklists_are_inline_in_the_prompt(self):
+        prompt = (self.out / "prompt.md").read_text()
+        for section in ("=== goal.md ===", "=== checks.txt ===", "=== checklists.md ==="):
+            self.assertIn(section, prompt)
+        # the raw output itself, not a pointer to it
+        self.assertIn("app/utils.py: grab-bag file name", prompt)
+        self.assertIn("(exit 1: blocking)", prompt)
+        self.assertIn("Owned paths: app/, README.md", prompt)
+        self.assertIn("# architecture", prompt)
+        self.assertNotIn("you don't need to open those files", prompt.split("=== goal.md ===")[1])  # prose comes first
+
+    def test_inline_text_is_capped_with_a_note(self):
+        env = {**os.environ, "REVIEW_OUT": str(self.out) + "-small", "REVIEW_NO_FETCH": "1", "REVIEW_SKIP_SEC": "1",
+               "REVIEW_GATE": "true", "REVIEW_GOAL": "# goal", "REVIEW_MAX_INLINE": "60"}
+        subprocess.run(["sh", str(HERE / "review.sh"), str(self.repo), "feature", "main"], capture_output=True, text=True, env=env)
+        prompt = (Path(str(self.out) + "-small") / "prompt.md").read_text()
+        self.assertIn("[truncated at 60 bytes; the full file is checks.txt in the review folder]", prompt)
+        self.assertGreater(len((Path(str(self.out) + "-small") / "checks.txt").read_text()), 60)  # the file keeps everything
+
     def test_reviewer_inputs(self):
         self.assertIn("VERDICT: PASS | CHANGES", (self.out / "prompt.md").read_text())
         lists = (self.out / "checklists.md").read_text()
