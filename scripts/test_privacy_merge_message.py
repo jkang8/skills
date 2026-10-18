@@ -1,4 +1,4 @@
-"""privacy_check.sh skips GitHub's default merge line for the remote's owner, and nothing else."""
+"""privacy_check.sh skips GitHub's default merge line and the owner's noreply Co-authored-by address, and nothing else."""
 import os
 import shutil
 import subprocess
@@ -63,6 +63,28 @@ class MergeMessage(unittest.TestCase):
         self.commit("Merge pull request #7 from someone-else/feat/x")
         self.assertEqual(self.check().returncode, 0)  # nothing denied in that line
         self.commit(f"Merge pull request #8 from {OWNER}-fork/feat/x")
+        self.assertNotEqual(self.check().returncode, 0)
+
+    def test_owner_noreply_coauthor_trailer_passes(self):
+        self.commit(f"Fix\n\nCo-authored-by: Some Person <{OWNER}@users.noreply.github.com>\nCo-authored-by: Bot <noreply@example.com>")
+        self.commit(f"Fix 2\n\nCo-authored-by: Some Person <12345+{OWNER}@users.noreply.github.com>")
+        r = self.check()
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+
+    def test_trailer_with_the_owner_in_another_address_fails(self):
+        self.commit(f"Fix\n\nCo-authored-by: Some Person <{OWNER}@example.com>")
+        self.assertNotEqual(self.check().returncode, 0)
+
+    def test_name_beside_the_owners_noreply_address_is_skipped_too(self):
+        self.commit(f"Fix\n\nCo-authored-by: {OWNER} <{OWNER}@users.noreply.github.com>")
+        self.assertEqual(self.check().returncode, 0)
+
+    def test_denied_name_with_another_address_fails(self):
+        self.commit(f"Fix\n\nCo-authored-by: {OWNER} <someone@example.com>")
+        self.assertNotEqual(self.check().returncode, 0)
+
+    def test_trailer_for_another_owner_is_not_skipped(self):
+        self.commit(f"Fix\n\nCo-authored-by: X <{OWNER}-fork@users.noreply.github.com>")
         self.assertNotEqual(self.check().returncode, 0)
 
     def test_file_content_still_fails(self):

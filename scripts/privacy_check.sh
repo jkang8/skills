@@ -30,10 +30,13 @@ printf '%s\n' "${PRIVACY_ALLOW:-}" | while IFS= read -r rule; do
   if [ -f "$WORK/$f" ]; then grep -vxF "$line" "$WORK/$f" > "$WORK/.tmp" || true; mv "$WORK/.tmp" "$WORK/$f"; fi
 done
 
-# GitHub's default merge text names the branch's owner, which is public in the remote URL. Only that exact line,
-# for the owner read from the remote, is skipped in commit messages; the owner stays denied everywhere else.
+# GitHub's generated commit text names the branch's owner, which is public in the remote URL. Only that exact merge line and the
+# owner's noreply Co-authored-by trailer, for the owner read from the remote, are skipped in commit messages; the owner stays denied everywhere else.
 OWNER="$(git -C "$REPO" remote get-url origin 2>/dev/null | sed -nE 's#^(https://github\.com/|git@github\.com:)([A-Za-z0-9-]+)/.*#\2#p')"
 MERGE_LINE="Merge pull request #[0-9]+ from ${OWNER:-no-owner}/[A-Za-z0-9._/-]+"
+# Likewise the whole Co-authored-by line when its address is the owner's public noreply one: the name beside it is
+# the same identity as every commit's author field. A trailer with any other address is still scanned.
+TRAILER_LINE="Co-authored-by: [^<]*<([0-9]+\\+)?${OWNER:-no-owner}@users\\.noreply\\.github\\.com>"
 
 fail=0
 echo "== privacy scan (denylist, emails, secrets)"
@@ -43,7 +46,7 @@ git -C "$WORK" init -q && git -C "$WORK" add -A
 echo "== term grep (contents, file names, commit messages)"
 hits="$( (cd "$WORK" && grep -rniE --exclude-dir=.git "$GENERIC|$PRIVACY_TERMS" . || true)
   (cd "$WORK" && git ls-files | grep -iE "$GENERIC|$PRIVACY_TERMS" | sed 's/^/file name: /' || true)
-  (git -C "$REPO" log --format=%B 2>/dev/null | grep -vxE "$MERGE_LINE" | grep -iE "$GENERIC|$PRIVACY_TERMS" | sed 's/^/commit message: /' || true) )"
+  (git -C "$REPO" log --format=%B 2>/dev/null | grep -vxE "$MERGE_LINE" | grep -vxiE "$TRAILER_LINE" | grep -iE "$GENERIC|$PRIVACY_TERMS" | sed 's/^/commit message: /' || true) )"
 if [ -n "$hits" ]; then echo "$hits"; fail=1; else echo "term grep: clean"; fi
 
 [ "$fail" -eq 0 ] && echo "PRIVACY CHECK PASS" || { echo "PRIVACY CHECK FAIL"; exit 1; }

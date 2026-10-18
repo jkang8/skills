@@ -74,7 +74,7 @@ To keep overrides outside the checkout, symlink them in: `ln -s ~/private/repo-s
 - `scripts/privacy_scan.py` (stdlib, in this repo): real email addresses, secret-shaped strings and a denylist of terms, and
 - a grep for generic leaks (home-directory paths, personal mail domains) plus your own terms.
 
-One exception: in commit messages, GitHub's default `Merge pull request #<n> from <owner>/<branch>` line is skipped when `<owner>` is the owner in the `origin` URL, which is public already. The owner stays denied everywhere else.
+One exception: in commit messages, GitHub's default `Merge pull request #<n> from <owner>/<branch>` line is skipped when `<owner>` is the owner in the `origin` URL, which is public already. The same goes for the owner's `<owner>@users.noreply.github.com` address in a `Co-authored-by` trailer, name included (a trailer with any other address is still scanned). The owner stays denied everywhere else.
 
 Its config is a shell file at `.privacy.local` (gitignored) or the path in `$PRIVACY_CONFIG`:
 
