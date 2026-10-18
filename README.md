@@ -1,6 +1,6 @@
 # skills
 
-Seven agent skills for Claude Code and Hermes. Each is a folder: `SKILL.md` holds the rules and a checklist, `references/` the reasoning and examples, and `scripts/` the checks a repo's `make gate` calls. Anything personal, like a registry name, a machine path or a cost policy, goes in a local override file, so the shared text stays generic.
+Eight agent skills for Claude Code and Hermes. Each is a folder: `SKILL.md` holds the rules and a checklist, `references/` the reasoning and examples, and `scripts/` the checks a repo's `make gate` calls. Anything personal, like a registry name, a machine path or a cost policy, goes in a local override file, so the shared text stays generic.
 
 | Skill | Use it when | What it gives the agent |
 |---|---|---|
@@ -9,6 +9,7 @@ Seven agent skills for Claude Code and Hermes. Each is a folder: `SKILL.md` hold
 | `doc-writing` | writing a README, guide, ADR or AGENTS.md | Diátaxis doc types, writing rules, what goes in vs. stays out, ADR shape, doc-bloat budgets, a review checklist |
 | `architecture` | structuring or reviewing code | deep modules, one-way dependencies, functional core, when to extract or inline a helper, smells, a review checklist |
 | `security` | code touches input, auth, secrets, deps or data | secrets, input validation, auth per object, privacy, supply chain, agent-specific risks; `sec_check.sh` runs ruff S, gitleaks, pip-audit, pnpm audit |
+| `demo-video` | recording a captioned walkthrough of a running app | storyboard-first method, one script per scene, stitching with a caption band, burned-in captions plus `.srt`, a frame check at every caption; scripts for running scenes, stitching and checking, with fixture tests |
 | `review` | reviewing a branch (the skill says when one runs) | diff scope, routing to the skills that apply, mechanical checks, one fresh-reviewer prompt; `review.sh` does steps 1-3 |
 | `repo-setup` | starting a new repo | a uv + Pydantic + FastAPI + Postgres backend, a pnpm + Vite + React + TS frontend, a shadcn registry layout, Makefile gate, done-when criteria |
 
@@ -20,7 +21,7 @@ Claude Code loads user skills from `~/.claude/skills/<name>/SKILL.md`, and a sym
 
 ```sh
 git clone https://github.com/<owner>/skills ~/code/skills
-for s in coding-orchestration architecture security review ui-design-system doc-writing repo-setup; do
+for s in coding-orchestration architecture security review ui-design-system doc-writing repo-setup demo-video; do
   ln -s ~/code/skills/skills/$s ~/.claude/skills/$s
 done
 ```
@@ -47,6 +48,7 @@ link repo-setup software-development
 link architecture software-development
 link security software-development
 link review software-development
+link demo-video creative
 ```
 
 The categories are only folders; pick any. If Hermes edits a linked `SKILL.md` itself, it may replace the link with a plain file. Check with `ls -l` after a self-edit and move real changes into the repo or your override.

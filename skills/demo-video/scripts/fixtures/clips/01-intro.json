@@ -1,0 +1,3 @@
+{"name": "01-intro", "duration": 10.0, "cues": [
+  {"start": 0.0, "text": "First point: the dashboard opens on the totals."},
+  {"start": 4.0, "text": "Second point: totals link to the records behind them."}]}
