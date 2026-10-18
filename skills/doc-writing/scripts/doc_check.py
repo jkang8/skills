@@ -40,6 +40,8 @@ def looks_like_path(tok: str) -> bool:
 def stale(tok: str, doc: Path, root: Path) -> bool:
     tok = re.sub(r":\d+(-\d+)?$", "", tok)
     first = PurePath(tok).parts[0]
+    if first == ".git":  # a file, not a folder, in worktrees; never tracked content
+        return False
     bases = [b for b in (doc.parent, root) if (b / first).exists() or first in (".", "..")]
     return bool(bases) and not any((b / tok).exists() for b in bases)
 

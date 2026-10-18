@@ -8,7 +8,7 @@ Four agent skills (coding orchestration, UI design system, doc writing, repo set
 - `scripts/privacy_check.sh`: the privacy gate.
 
 ## Commands
-- Gate: `make gate` (script tests, `doc_check.py` on this repo, privacy check). Passes when it ends with `PRIVACY CHECK PASS`.
+- Gate: `make gate`. Passes when it ends with `PRIVACY CHECK PASS`.
 - Privacy check alone: `scripts/privacy_check.sh`. Install it as `.git/hooks/pre-commit` (see README).
 
 ## Rules

@@ -110,7 +110,6 @@ Agents append by default: every task adds a line, nobody removes one. Treat doc 
 - Delete stale docs. A missing doc is better than a wrong one.
 
 ## Review checklist
-`make gate` must call `scripts/doc_check.py <repo>` (stdlib Python; line budgets and stale backticked paths).
 1. Each page is one Diátaxis type, and its title says what the reader gets or does.
 2. The first sentence states the outcome. Steps are numbered and each one is verifiable.
 3. Every command and sample was run, and its output is shown.
@@ -120,6 +119,7 @@ Agents append by default: every task adds a line, nobody removes one. Treat doc 
 7. Every line passes the in/out test above; nothing in the stays-out list made it in.
 8. Docs are within budget, and any growth in the diff is justified in the PR.
 9. Terms match the code and UI. No filler words, no "click here", no future promises.
+10. `make gate` calls `scripts/doc_check.py <repo>` and it prints `doc check: clean`.
 
 ## Sources
 Not re-read for this version; they were cited by the skill it was generalized from, so treat the summaries above as known rather than freshly read.
