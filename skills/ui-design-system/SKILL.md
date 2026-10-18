@@ -1,7 +1,7 @@
 ---
 name: ui-design-system
 description: "Use when building UI: tokens, closed component set, review."
-version: 1.2.0
+version: 1.3.0
 license: MIT
 metadata:
   hermes:
@@ -51,6 +51,9 @@ Adding one: only when composing the set can't meet the need. First write three l
 ## Interaction, hierarchy and AI-native rules
 Follow `references/patterns.md`: exact transition properties, entry from `scale(0.95)`, 24px hit targets, skeleton show delay and minimum time, optimistic updates with Undo, ellipsis labels, emphasis by weight and color before size, quiet chrome, strict alignment, and the AI patterns (footprints, inline citations, muted "Generated" label, progress against a plan, edit/accept/undo, honest limits).
 
+## Clarity for the user
+Follow `references/clarity.md`: write for the least technical user; each screen answers "what do I do next, and what is it worth?"; one headline number; counts that reconcile; one plain sentence and one named action per item; details behind a click; trust guarantees stated once; progress and a done state; role-specific views; one-story demos.
+
 ## Scores, tiers and thresholds
 For any value bucketed into levels (confidence, risk, urgency, priority, health, impact):
 - **Define each scale once** in one pure, tested module with named threshold constants. UI reads tiers from it, never hardcodes cutoffs.
@@ -74,6 +77,7 @@ Purple/blue gradients · glassmorphism · ✨ sparkle icons · emoji in UI · "A
 5. Walk the NN/g heuristics once: system status visible, Undo available, consistent with the rest of the app, errors prevented or explained, shortcuts for experts.
 6. Every AI output shows its footprints and its sources, and can be edited or undone.
 7. Every scored or tiered value comes from one scale module, shows its rule, and doesn't rely on color alone.
-8. `make gate` calls `scripts/design_lint.py <web dir>` and it prints `design lint: clean`.
+8. Each screen answers "what do I do next, and what is it worth?" for the least technical user, with one headline number, counts that reconcile, and details behind a click (`references/clarity.md`).
+9. `make gate` calls `scripts/design_lint.py <web dir>` and it prints `design lint: clean`.
 
 Sources and what each contributed: `references/sources.md`. Re-read it when a design call isn't covered here.
