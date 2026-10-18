@@ -5,7 +5,8 @@
 # dir), keeps a read-only-by-convention checkout of the branch in it, and prints the prompt plus the launch command.
 # Exits 1 if any mechanical check fails (the prompt is still written).
 # Env: REVIEW_GATE (default `make gate` when the Makefile has a gate target), REVIEW_GOAL (PR goal and owned paths
-# when `gh pr view` can't supply them), REVIEW_SKIP_SEC=1 (skip sec_check.sh), REVIEW_NO_FETCH=1.
+# when `gh pr view` can't supply them), REVIEW_SKIP_SEC=1 (skip sec_check.sh), REVIEW_NO_FETCH=1,
+# REVIEW_CLAUDE (default `claude`; the command the printed launch line starts with, e.g. a wrapper that picks an account).
 set -u
 SKILLS="$(cd "$(dirname "$0")/../.." && pwd)"
 REPO="$(cd "${1:?usage: review.sh <repo-checkout> <branch> [base]}" && pwd)"
@@ -98,7 +99,7 @@ skills:$skills
 not applicable:$skipped
 review folder: $OUT
 launch the reviewer (fresh session, read-only):
-  cd "$OUT" && claude -p "\$(cat prompt.md)" --model opus --effort high --add-dir "$WT" --tools "Read,Glob,Grep" --disallowedTools "Edit,Write,NotebookEdit,Bash" > verdict.md
+  cd "$OUT" && ${REVIEW_CLAUDE:-claude} -p "\$(cat prompt.md)" --model opus --effort high --add-dir "$WT" --tools "Read,Glob,Grep" --disallowedTools "Edit,Write,NotebookEdit,Bash" > verdict.md
 clean up afterwards:
   git -C "$REPO" worktree remove --force "$WT"
 EOF

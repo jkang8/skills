@@ -43,6 +43,7 @@ Start a new headless session in a read-only checkout of the branch: default tier
 ```sh
 claude -p "$(cat prompt.md)" --model opus --effort high --add-dir <branch-checkout> --tools "Read,Glob,Grep" --disallowedTools "Edit,Write,NotebookEdit,Bash" > verdict.md
 ```
+`review.sh` prints this line; set `REVIEW_CLAUDE` to start it with a wrapper instead of `claude` (for example one that selects an account).
 
 `--tools` limits what the session can use at all. `--allowedTools` only pre-approves tools, so with it alone a user setting such as `acceptEdits` still lets the reviewer edit the branch (tested: it did). Keep both flags.
 
