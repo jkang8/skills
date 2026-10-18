@@ -45,10 +45,7 @@ Adding one: only when composing the set can't meet the need. First write three l
 - Tables: numbers right-aligned; truncated text shows the full value on hover; filter bar above; filters in the URL.
 - Keyboard: everything reachable by Tab, visible focus rings, Esc closes layers, ⌘K opens Command.
 - Accessibility: WCAG AA in both themes, labels on every input, `aria-label` on icon-only buttons.
-## Copy: plain, short
-- Buttons and primary actions are **short verb phrases, up to 3 words, ideally fewer**: "Approve", "Fix notes", "Draft amends", "Re-run". Never a full sentence in a button, never "we"/"I" ("Notify me", not "We'll email you"), never an explanation inside the control. A sentence that must be shown goes in the nearby text, not the button; but if a user needs to know what clicking does before they click, use a Button + Tooltip or a one-line helper under it.
-- Labels: short, specific, sentence case ("3 invoices overdue", not "Unlock hidden revenue"). No marketing copy in the app.
-- Write for the least technical reader. One action per view leads; detail lives one click away. Say the safety/trust guarantee once, in one persistent place, not on every card.
+- Copy: short, specific, sentence case ("3 invoices overdue", not "Unlock hidden revenue"). No marketing copy in the app.
 - AI features earn their place by doing work, not describing it: notice things before anyone asks, prepare the fix, hand a person a decision, and show the source. Numbers people must audit (totals, rules, statistics) stay deterministic; AI reads, flags and drafts. Fall back to deterministic output when AI is unavailable.
 
 ## Interaction, hierarchy and AI-native rules
