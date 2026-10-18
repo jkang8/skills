@@ -1,6 +1,6 @@
 ---
 name: demo-video
-description: "Use when recording a product demo video: storyboard, scene clips, captions, frame check."
+description: "Use when recording an app demo: storyboard, clips, captions."
 version: 1.0.0
 license: MIT
 metadata:

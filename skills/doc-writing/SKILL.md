@@ -63,7 +63,7 @@ The in/out test for every line: would a capable agent or new engineer, reading o
 **Comments:** one line on why, a constraint or a non-obvious choice. Never narrate the next line.
 
 ## Budgets and bloat
-- AGENTS.md ≤100 lines, README ≤150, ADR ≤15, SKILL.md ≤120, how-to ≤1 screen of steps. Over budget fails the check; cut, don't raise the cap.
+- AGENTS.md ≤100 lines, README ≤150, ADR ≤15, SKILL.md ≤120 with a description ≤60 chars, how-to ≤1 screen of steps. Over budget fails the check; cut, don't raise the cap.
 - Edit, don't append: rewrite the line a change supersedes.
 - Net-zero by default: a PR that grows docs says what it replaced or why growth is needed.
 - One home per fact; delete duplicates and link.

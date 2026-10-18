@@ -28,6 +28,16 @@ class DocCheck(unittest.TestCase):
             skill.write_text("rule\n" * 121)
             self.assertEqual(check(Path(d)), ["skills/demo/SKILL.md: 121 lines, budget 120"])
 
+    def test_skill_description_max(self):
+        with tempfile.TemporaryDirectory() as d:
+            skill = Path(d) / "skills/demo/SKILL.md"
+            skill.parent.mkdir(parents=True)
+            ok = "x" * 60
+            skill.write_text(f'---\nname: demo\ndescription: "{ok}"\n---\n# Demo\n')
+            self.assertEqual(check(Path(d)), [])
+            skill.write_text(f'---\nname: demo\ndescription: "{ok}y"\n---\n# Demo\n')
+            self.assertEqual(check(Path(d)), ["skills/demo/SKILL.md: description is 61 chars, max 60"])
+
     def test_git_paths_skipped_in_worktrees(self):
         with tempfile.TemporaryDirectory() as d:
             root = Path(d)
