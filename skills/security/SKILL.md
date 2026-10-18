@@ -52,7 +52,7 @@ If `security.local.md` exists in this skill's folder or in `overrides/` at the r
 - Automation that reads repo text (PR/issue bodies, comments) filters by author trust (`author_association` OWNER/MEMBER/COLLABORATOR) before any of it reaches an agent with shell access. Bash deny-lists that match command prefixes don't hold (`git -C . push`, absolute binary paths, `curl` all slip through); restrict the tool set to an allowlist instead.
 
 ## Tooling (gate)
-`make gate` must call `scripts/sec_check.sh <repo>`: ruff with the `S` (bandit) rules on Python, gitleaks for secrets, pip-audit and `pnpm audit --prod` for deps. It installs missing tools on first use and skips one with a warning only if it can't install. Add semgrep `p/default` when a repo handles auth or user uploads.
+`make gate` must call `scripts/sec_check.sh <repo>`: ruff with the `S` (bandit) rules on Python, gitleaks for secrets, pip-audit and `pnpm audit --prod` for deps. Tools are pinned: ruff and pip-audit by version, gitleaks by version and SHA-256 (a download that doesn't match is a failure and is never run; a gitleaks already on `PATH` is used as is). It skips a tool with a warning only if it can't install it. Add semgrep `p/default` when a repo handles auth or user uploads.
 
 ## Review checklist
 1. Any secret, token, personal data or real PHI in the diff, fixtures, logs or screenshots?
