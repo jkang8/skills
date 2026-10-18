@@ -10,7 +10,7 @@ Five agent skills you can drop into Claude Code or Hermes. Each one is a single 
 | `architecture` | structuring or reviewing code | deep modules, one-way dependencies, functional core, when to extract or inline a helper, smells, a review checklist |
 | `repo-setup` | starting a new repo | a uv + Pydantic + FastAPI + Postgres backend, a pnpm + Vite + React + TS frontend, a shadcn registry layout, Makefile gate, done-when criteria |
 
-The skills reference each other (orchestration briefs pull in the other three), so install them together.
+The skills reference each other (orchestration briefs pull in the others), so install them together.
 
 ## Install for Claude Code
 

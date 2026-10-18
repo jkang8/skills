@@ -39,9 +39,11 @@ run_one() { # $1 task, $2 arm, $3 run index
     --permission-mode acceptEdits --allowedTools "Read,Write,Edit,Glob,Grep,Bash(python3:*),Bash(ls:*)" \
     $extra > "$d/agent.txt" 2>&1) || true
   rm -rf "$w/.git"
+  # The judge can't run anything, so the task's tests run here and it reads their raw output.
+  [ -f "$TASKS/tests" ] && { (cd "$w" && sh -c "$(cat "$TASKS/tests")") > "$d/tests.txt" 2>&1; echo "(exit $?)" >> "$d/tests.txt"; }
   hits="$(check "$w" "$d/check.txt")"
   # Judge blind: a copy whose path doesn't name the arm.
-  b="$(mktemp -d "$RUN/blind.XXXXXX")"; cp -R "$w/." "$b/"
+  b="$(mktemp -d "$RUN/blind.XXXXXX")"; cp -R "$w/." "$b/"; [ -f "$d/tests.txt" ] && cp "$d/tests.txt" "$b/.tests.txt"
   python3 - "$ROOT/evals/judge.md" "$TASKS/$1/prompt.md" "$TASKS/rubric.md" > "$b/.judge-prompt" <<'PY'
 import sys
 j, t, r = (open(p).read() for p in sys.argv[1:])

@@ -6,7 +6,7 @@ license: MIT
 metadata:
   hermes:
     tags: [orchestration, coding-agents, parallel, worktrees, claude-code, codex, opencode]
-    related_skills: [ui-design-system, repo-setup, doc-writing]
+    related_skills: [architecture, ui-design-system, repo-setup, doc-writing]
 ---
 
 # Coding orchestration (harness-agnostic)
@@ -18,6 +18,7 @@ If `coding-orchestration.local.md` exists in this skill's folder or in `override
 
 ## Other skills
 - UI: the brief tells the agent to follow `ui-design-system` (Claude Code loads it as a user skill; for other harnesses, paste its rules). Run its review checklist before showing the user screenshots or video.
+- Code: the brief tells the agent to follow `architecture`.
 - New repos: scaffold with `repo-setup` unless the user names another stack.
 - Docs: follow `doc-writing`. Docs change in the same PR as the code.
 

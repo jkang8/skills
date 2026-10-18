@@ -15,7 +15,7 @@ metadata:
 Any code an agent writes or reviews in your repos: new features, refactors, reviews. Put it in the coding agent's brief (coding-orchestration). Taste here means code a new reader can change safely in one sitting.
 
 ## Local overrides
-If `architecture.local.md` exists in this skill's folder or in `overrides/` at the root of the checkout this skill came from (resolve symlinks to find it), read it first. Its values fill the `<placeholders>` here; its rules add to these and win on conflict.
+If `architecture.local.md` exists in this skill's folder or in `overrides/` at the root of the checkout this skill came from (resolve symlinks to find it), read it first. Its rules add to these and win on conflict.
 
 ## Core rules
 1. **Deep modules over shallow ones.** A module earns its place by hiding a lot behind a small interface (Ousterhout). A wrapper that forwards arguments and adds a name is cost, not structure.
