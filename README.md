@@ -69,18 +69,16 @@ To keep overrides outside the checkout, symlink them in: `ln -s ~/private/repo-s
 ## Privacy gate
 
 `scripts/privacy_check.sh` scans everything git would commit (tracked, staged and new files), plus commit messages, and fails on personal data. It runs:
-- an external guard script you point it at (checks emails, secrets and a denylist of terms), and
+- `scripts/privacy_scan.py` (stdlib, in this repo): real email addresses, secret-shaped strings and a denylist of terms, and
 - a grep for generic leaks (home-directory paths, personal mail domains) plus your own terms.
 
 Its config is a shell file at `.privacy.local` (gitignored) or the path in `$PRIVACY_CONFIG`:
 
 ```sh
-PRIVACY_PYTHON=/path/to/python3
-PRIVACY_GUARD=/path/to/privacy_guard.py
-PRIVACY_GUARD_PYTHONPATH=/path/that/the/guard/imports/from
 PRIVACY_DENYLIST=/path/to/denylist.txt      # one term per line, never committed
 PRIVACY_TERMS='handle|employer|family-name'  # extended regex, case-insensitive
 PRIVACY_ALLOW='LICENSE:Copyright (c) 2026 Your Name'  # exact lines to let through
+PRIVACY_PYTHON=/path/to/python3              # optional; defaults to python3
 ```
 
 Without the config or the denylist, the check fails rather than passing silently. `.privacy.local` is per checkout, so in a git worktree set `PRIVACY_CONFIG` instead. Make it run before every commit:

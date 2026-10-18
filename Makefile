@@ -2,7 +2,7 @@
 .PHONY: test gate
 
 test:
-	@set -e; for d in skills/*/scripts evals; do python3 -m unittest discover -s $$d -p 'test_*.py'; done
+	@set -e; for d in scripts skills/*/scripts evals; do python3 -m unittest discover -s $$d -p 'test_*.py'; done
 
 gate: test
 	python3 skills/doc-writing/scripts/doc_check.py .
