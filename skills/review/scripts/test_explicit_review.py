@@ -17,11 +17,20 @@ class ExplicitReview(unittest.TestCase):
                        "not from cron", "never as a merge gate", "default check is `make gate`"):
             self.assertIn(phrase, t)
 
-    def test_orchestration_states_the_rule(self):
-        t = text("coding-orchestration/SKILL.md")
-        for phrase in ("Review is explicit, never automatic", "only when the user asks", "Never on PR open, push or cron",
-                       "never as a merge gate", "default check is `make gate`"):
-            self.assertIn(phrase, t)
+    def test_the_rule_is_stated_once_and_everywhere_else_points_to_it(self):
+        rule = (r"never as a merge gate", r"on PR open", r"Never automatically", r"explicit, never automatic",
+                r"(?:only when the user asks for a review|review[^.]{0,80}only (?:when|if) the user asks)")
+        homes = {}
+        for md in sorted(list(SKILLS.glob("*/SKILL.md")) + list(SKILLS.glob("*/references/*.md")) + [SKILLS.parent / "README.md"]):
+            body = " ".join(md.read_text(encoding="utf-8").split())
+            for pattern in rule:
+                if re.search(pattern, body, re.I):
+                    homes.setdefault(pattern, []).append(md.relative_to(SKILLS.parent).as_posix())
+        for pattern, files in homes.items():
+            self.assertEqual(files, ["skills/review/SKILL.md"], f"{pattern!r} is restated outside the review skill: {files}")
+        for pointer in ("coding-orchestration/SKILL.md", "coding-orchestration/references/review.md",
+                        "review/references/reviewer-prompt.md", "ui-design-system/SKILL.md"):
+            self.assertIn("`review` skill", text(pointer), f"{pointer} should point to the review skill")
 
     def test_no_script_runs_a_review(self):
         for rel in ("coding-orchestration/scripts/improve.sh", "coding-orchestration/scripts/improve.md",
