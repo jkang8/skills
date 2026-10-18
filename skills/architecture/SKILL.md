@@ -52,6 +52,8 @@ Default to locality: keep behavior where it's used, so a reader sees what a thin
 ## Smells (fix or justify)
 Speculative generality (options, plugins, base classes with one subclass) · pass-through layers · manager/handler/processor names · boolean parameters that switch behavior · god files over ~500 lines · global mutable state · the same constant in two places · `utils` grab bags · circular imports · DTO-to-DTO mapping chains with no logic · comments explaining what instead of why.
 
+Worked before/after pairs for the rules above (route split, hook + pure component, inlined wrapper, flag split, grab bag split, functional core): `references/examples.md`.
+
 ## Review checklist
 1. Can each module be described in one sentence without "and"?
 2. Does every helper pass the extract test above? Any one-caller wrappers to inline?
