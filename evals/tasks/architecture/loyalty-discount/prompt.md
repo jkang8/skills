@@ -1,0 +1,1 @@
+Add a loyalty discount to this repo: customers with 5 or more past orders get 5% off their subtotal (VIP and loyalty discounts don't stack; the bigger one wins). Add tests. You may run `python3` to run the tests.

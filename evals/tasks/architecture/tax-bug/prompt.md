@@ -1,0 +1,1 @@
+Bug report: totals look wrong for VIP customers when tax applies, and failed orders return `{"status": "error"}` with no reason, so support can't tell what happened. Fix both and add regression tests. You may run `python3` to run the tests.

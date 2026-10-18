@@ -7,7 +7,7 @@ After the author agent opens a PR and its gate passes, before the orchestrator r
 
 ## Inputs (and nothing else)
 Put these in an empty review folder outside the repo, e.g. `<agents-dir>/<repo>/review/<task-id>/round-<n>/`:
-1. `checklist.md`: the review checklist of each skill the task used (ui-design-system for UI, doc-writing for docs, repo-setup for scaffolds), copied verbatim, plus the task's owned paths.
+1. `checklist.md`: the review checklist of each skill the task used (architecture for any code change, ui-design-system for UI, doc-writing for docs, repo-setup for scaffolds), copied verbatim, plus the task's owned paths.
 2. `diff.patch`: `git -C <worktree> diff origin/main...HEAD > diff.patch`.
 3. `screenshots/`: the author's screenshots (light, dark, 1440×900 and 390px), if the task has UI.
 4. `gate.txt`: the gate output the author pasted in the PR.
