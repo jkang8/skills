@@ -4,3 +4,6 @@
 2026-10-18 architecture csv-export model=opus judge=opus n=1 hits_without=1.0 hits_with=1.0 judge_without=7.0/10(70.0%) judge_with=10.0/10(100.0%)
 2026-10-18 architecture loyalty-discount model=opus judge=opus n=1 hits_without=1.0 hits_with=1.0 judge_without=10.0/10(100.0%) judge_with=10.0/10(100.0%)
 2026-10-18 architecture tax-bug model=opus judge=opus n=1 hits_without=1.0 hits_with=1.0 judge_without=9.0/10(90.0%) judge_with=10.0/10(100.0%)
+2026-10-18 architecture csv-export model=opus judge=opus n=3 hits_without=1.0 hits_with=1.0 judge_without=7.7/10(76.7%) judge_with=10.0/10(100.0%)
+2026-10-18 architecture loyalty-discount model=opus judge=opus n=3 hits_without=1.0 hits_with=1.0 judge_without=9.3/10(93.3%) judge_with=10.0/10(100.0%)
+2026-10-18 architecture tax-bug model=opus judge=opus n=3 hits_without=1.0 hits_with=1.0 judge_without=9.0/10(90.0%) judge_with=10.0/10(100.0%)
