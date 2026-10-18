@@ -17,7 +17,7 @@ When you write code, the orchestrator (a long-running agent such as Hermes, or a
 If `coding-orchestration.local.md` exists in this skill's folder or in `overrides/` at the root of the checkout this skill came from (resolve symlinks to find it), read it first. Its values fill the `<placeholders>` here; its rules add to these and win on conflict.
 
 ## Other skills
-- UI: the brief tells the agent to follow `ui-design-system` (Claude Code loads it as a user skill; for other harnesses, paste its rules). Run its review checklist before showing the user screenshots or video.
+- UI: the brief tells the agent to follow `ui-design-system` (Claude Code loads it as a user skill; for other harnesses, paste its rules). The agent checks screenshots and video against its checklist before reporting; an independent review (the `review` skill) runs only if the user asks, and the orchestrator doesn't review them itself.
 - Code: the brief tells the agent to follow `architecture`, and `security` when the change touches input, auth, secrets, deps or data.
 - New repos: scaffold with `repo-setup` unless the user names another stack.
 - Docs: follow `doc-writing`. Docs change in the same PR as the code.
