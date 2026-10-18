@@ -59,6 +59,13 @@ Coding agents make these mistakes more than people do. Each has the rule that pr
 - **Mocking everything in tests** -> test the pure core with real data; mock only true I/O edges, or use a real test database.
 - **A new file for one function** -> put it next to its caller or in the module that owns the concept.
 
+## Enforced boundaries
+`make gate` must call these, so the rules above fail the build instead of relying on review:
+- `scripts/arch_check.py <dir>`: files over 500 lines, grab-bag file names (utils, helpers, misc, common), import cycles in Python and TS. Prints `arch check: clean`.
+- Python layers: paste `scripts/templates/importlinter.toml` into pyproject and run `lint-imports` (routes -> services -> domain; domain imports no frameworks).
+- TS: copy `scripts/templates/dependency-cruiser.cjs` and run `depcruise` (no cycles; components don't import the API client).
+`scripts/check_templates.sh` proves both templates catch their violations.
+
 ## Smells (fix or justify)
 Speculative generality (options, plugins, base classes with one subclass) · pass-through layers · manager/handler/processor names · boolean parameters that switch behavior · god files over ~500 lines · global mutable state · the same constant in two places · `utils` grab bags · circular imports · DTO-to-DTO mapping chains with no logic · comments explaining what instead of why.
 
@@ -73,5 +80,6 @@ Worked before/after pairs for the rules above (route split, hook + pure componen
 6. Is anything built for a future nobody requested? Remove it.
 7. Did the change reuse existing code instead of adding a parallel version?
 8. None of the agent failure modes above: no blanket except, no re-validation of typed data, no single-implementation interface, no leftover old path, no mock-heavy tests, no one-function files.
+9. `make gate` runs `arch_check.py` and the layer checks, and they pass.
 
 Sources: `references/sources.md`.

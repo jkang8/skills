@@ -1,0 +1,18 @@
+# import-linter contracts for a Python app with routes -> services -> domain.
+# Paste into pyproject.toml, replace <pkg> with your top-level package, then run `lint-imports` in the gate.
+[tool.importlinter]
+root_package = "<pkg>"
+include_external_packages = true
+# Imports under `if TYPE_CHECKING:` don't run, so they don't break layers (same rule as arch_check.py).
+exclude_type_checking_imports = true
+
+[[tool.importlinter.contracts]]
+name = "Layers point one way: routes -> services -> domain"
+type = "layers"
+layers = ["<pkg>.routes", "<pkg>.services", "<pkg>.domain"]
+
+[[tool.importlinter.contracts]]
+name = "Domain imports no frameworks or I/O libraries"
+type = "forbidden"
+source_modules = ["<pkg>.domain"]
+forbidden_modules = ["fastapi", "starlette", "sqlalchemy", "httpx", "requests"]
