@@ -56,7 +56,8 @@ If `coding-orchestration.local.md` exists in this skill's folder or in `override
 
 ## 4. Integrate
 - Agent: test first, implement, rebase on `origin/main`, run the gate, open a PR, status `in-review`.
-- Orchestrator: check the diff against owned paths (out of scope -> send back), check gate output and CI, then start an independent reviewer run with the `review` skill (`review.sh <repo> <branch>`, then a fresh session) and relay its verdict. Report to the user once it passes. Merge order follows the board.
+- Orchestrator: check the diff against owned paths (out of scope -> send back), check gate output and CI, then report to the user with links and the gate output. Merge order follows the board.
+- **Review is explicit, never automatic.** Run the `review` skill only when the user asks for a review. Never on PR open, push or cron, and never as a merge gate. The default check is `make gate`.
 - After a merge, tell in-flight agents to rebase. Conflicts go to the agent owning the path, never to the orchestrator.
 - Clean up: `git worktree remove`, kill the tmux session, delete the claim, mark the row done.
 
@@ -66,7 +67,7 @@ A scheduled run that makes one gated improvement per run, as a PR: `scripts/impr
 - `<repo>/scripts/signals`: prints weak spots (failures, misses, metrics). It may take a path to private data passed in by the orchestrator; the repo never hardcodes it.
 - `IMPROVE.md`: what a good foundational fix looks like here, and what's off-limits (frozen evals, privacy rules).
 
-The run: fetch -> new worktree + branch `improve/<stamp>` -> haiku summarizes signals (marking private items) -> opus picks ONE fix and builds it test-first -> gate. Two gate failures with full context -> one retry on fable; quit early or skipped the test -> one retry on opus at high effort. Pass -> PR with model + effort in the body and no private data. Fail -> discard the worktree, one-line note to the user. Never merges. Opt a repo in by adding a cron for it, e.g. weekly: `0 6 * * 1 <skills-checkout>/skills/coding-orchestration/scripts/improve.sh <repo-checkout> [data-path]`.
+The run: fetch -> new worktree + branch `improve/<stamp>` -> haiku summarizes signals (marking private items) -> opus picks ONE fix and builds it test-first -> gate. Two gate failures with full context -> one retry on fable; quit early or skipped the test -> one retry on opus at high effort. Pass -> PR with model + effort in the body and no private data. Fail -> discard the worktree, one-line note to the user. Never merges, and has no review step: the gate is its check, and a review runs only if the user asks. Opt a repo in by adding a cron for it, e.g. weekly: `0 6 * * 1 <skills-checkout>/skills/coding-orchestration/scripts/improve.sh <repo-checkout> [data-path]`.
 
 ## Pitfalls
 - Long sessions live in tmux or the harness's background mode; the orchestrator isn't notified when they end. Say so, and poll on request or by cron.
@@ -76,7 +77,7 @@ The run: fetch -> new worktree + branch `improve/<stamp>` -> haiku summarizes si
 ## Checklist before reporting a PR
 1. The diff touches only the task's owned paths, or paths it held a lock for.
 2. The gate passed after the final rebase, and its output is in the PR body.
-3. The independent reviewer (the `review` skill) returned `VERDICT: PASS`.
+3. If the user asked for a review (the `review` skill), its verdict is linked; otherwise none ran, and that's fine.
 4. Model and effort are recorded in the PR body.
 5. Claim and locks are released; the board row says `in-review`.
 

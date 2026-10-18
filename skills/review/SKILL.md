@@ -1,6 +1,6 @@
 ---
 name: review
-description: "Use when reviewing a branch: run every relevant skill."
+description: "Use when the user asks for a branch review: run every relevant skill."
 version: 1.0.0
 license: MIT
 metadata:
@@ -12,7 +12,7 @@ metadata:
 # Review a branch
 
 ## When to use
-Before any PR is reported to the user or merged: a branch from a coding session, an improve-loop run, or the user's own work. One entry point picks the skills that apply and runs them. The reviewer is never the agent that wrote the code, and never the orchestrator.
+Only when the user asks for a review of a branch (from a coding session, an improve-loop run, or their own work). **Never automatically**: not on PR open, not on push, not from cron or the improve loop, and never as a merge gate. The default check is `make gate`. When asked, one entry point picks the skills that apply and runs them. The reviewer is never the agent that wrote the code, and never the orchestrator.
 
 `scripts/review.sh <repo> <branch> [base]` does steps 1-3 and writes the step-4 inputs and prompt to a folder it prints.
 
@@ -51,6 +51,7 @@ claude -p "$(cat prompt.md)" --model opus --effort high --add-dir <branch-checko
 Post the verdict as a PR comment (`gh pr comment`): skills applied, check results, blocking findings and how they were resolved, nits. The orchestrator relays a two-line summary to the user. The reviewer never merges.
 
 ## Pitfalls
+- Wiring review into automation (PR-open or push triggers, hooks, cron, a required status check): don't. It runs when the user asks, and the gate is the merge check.
 - Reviewing your own code: the author agent and the orchestrator don't run step 4; a fresh session does.
 - Running every skill on every diff: route in step 2, or the review drowns in N/A noise.
 - Skipping security because the diff is small: the light pass always runs on code.
