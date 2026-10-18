@@ -62,7 +62,7 @@ To keep overrides outside the checkout, symlink them in: `ln -s ~/private/repo-s
 
 ## Checks and evals
 
-`make gate` runs every script's fixture tests, `doc_check.py` on this repo, `arch_check.py`, `sec_check.sh` and the privacy check. It passes when it ends with `PRIVACY CHECK PASS`. The checks that install tools or need the network have their own scripts: `skills/architecture/scripts/check_templates.sh`, `skills/architecture/references/examples/check.sh` and `skills/security/scripts/test_sec_check.sh`.
+`make gate` is this repo's check; the `Makefile` lists what it runs (script tests, `doc_check`, `arch_check`, `design_lint` on the TS examples, `sec_check` and the privacy check). It passes when it ends with `PRIVACY CHECK PASS`. `sec_check.sh` is in the gate and needs the network the first time: it downloads a pinned, checksum-verified gitleaks and runs ruff and pip-audit through `uvx`. Three heavier checks stay outside the gate because they fetch dependencies: `skills/architecture/scripts/check_templates.sh`, `skills/architecture/references/examples/check.sh` and `skills/security/scripts/test_sec_check.sh`. Run them when you change what they test.
 
 `evals/run.sh <skill>` runs a skill's tasks headless, without and with the skill, and prints a comparison table. `evals/README.md` covers how to run and read it.
 
