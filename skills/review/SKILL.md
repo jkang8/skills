@@ -35,14 +35,16 @@ If `review.local.md` exists in this skill's folder or in `overrides/` at the roo
 List the chosen skills and why at the top of the verdict. Skip the rest explicitly ("no UI changed: ui-design-system n/a").
 
 ## 3. Mechanical checks first
-Run the repo's `make gate`, then the scripts of the chosen skills: `arch_check.py`, `design_lint.py`, `doc_check.py`, `stack_check.py`, `sec_check.sh`. Use the repo's vendored copies if it has them, otherwise this skills checkout. A failing check is a blocking finding; the reviewer doesn't re-argue it.
+Run the repo's `make gate`, then the scripts of the chosen skills: `arch_check.py`, `design_lint.py`, `doc_check.py`, `stack_check.py`, `sec_check.sh`. Use the repo's vendored copies if it has them, otherwise this skills checkout. `review.sh` captures the raw output of the gate and every check in `checks.txt`; that file, never a pasted summary, is what the reviewer gets. A failing check is a blocking finding; the reviewer doesn't re-argue it.
 
 ## 4. Judgment pass: a fresh reviewer
 Start a new headless session in a read-only checkout of the branch: default tier (opus), high effort. Give it ONLY the PR goal and owned paths, the diff, the check output, screenshots if UI, and the checklists of the chosen skills. Not the author's transcript and not the orchestrator's opinion. The exact prompt is `references/reviewer-prompt.md`; `review.sh` fills it in and prints the launch command:
 
 ```sh
-claude -p "$(cat prompt.md)" --model opus --effort high --add-dir <branch-checkout> --allowedTools "Read,Glob,Grep" > verdict.md
+claude -p "$(cat prompt.md)" --model opus --effort high --add-dir <branch-checkout> --tools "Read,Glob,Grep" --disallowedTools "Edit,Write,NotebookEdit,Bash" > verdict.md
 ```
+
+`--tools` limits what the session can use at all. `--allowedTools` only pre-approves tools, so with it alone a user setting such as `acceptEdits` still lets the reviewer edit the branch (tested: it did). Keep both flags.
 
 ## 5. Loop
 `VERDICT: CHANGES` -> send the BLOCKING lines (not the nits) to the author session unchanged; it fixes on the same branch; re-run steps 3-4 in a new reviewer session (never reuse the last one). Max 2 rounds; still failing -> report to the user with the findings. Nits go on the PR in one line and never block.

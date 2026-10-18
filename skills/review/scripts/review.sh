@@ -87,7 +87,7 @@ skills:$skills
 not applicable:$skipped
 review folder: $OUT
 launch the reviewer (fresh session, read-only):
-  cd "$OUT" && claude -p "\$(cat prompt.md)" --model opus --effort high --add-dir "$WT" --allowedTools "Read,Glob,Grep" > verdict.md
+  cd "$OUT" && claude -p "\$(cat prompt.md)" --model opus --effort high --add-dir "$WT" --tools "Read,Glob,Grep" --disallowedTools "Edit,Write,NotebookEdit,Bash" > verdict.md
 clean up afterwards:
   git -C "$REPO" worktree remove --force "$WT"
 EOF

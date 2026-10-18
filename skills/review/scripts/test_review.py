@@ -52,6 +52,14 @@ class Review(unittest.TestCase):
         self.assertIn("FAIL  arch_check", self.run_.stdout)
         self.assertIn("ok    gate", self.run_.stdout)
 
+    def test_launch_command_is_read_only(self):
+        cmd = next(line for line in self.run_.stdout.splitlines() if "claude -p" in line)
+        self.assertIn('--tools "Read,Glob,Grep"', cmd)
+        self.assertIn("--disallowedTools", cmd)
+        for tool in ("Edit", "Write", "NotebookEdit", "Bash"):
+            self.assertIn(tool, cmd.split("--disallowedTools")[1])
+        self.assertNotIn("--allowedTools", cmd)  # pre-approval alone doesn't restrict anything
+
     def test_reviewer_inputs(self):
         self.assertIn("VERDICT: PASS | CHANGES", (self.out / "prompt.md").read_text())
         lists = (self.out / "checklists.md").read_text()
