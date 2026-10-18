@@ -79,10 +79,10 @@ Purple/blue gradients · glassmorphism · ✨ sparkle icons · emoji in UI · "A
 Sources and what each contributed: `references/sources.md` (Vercel, Emil Kowalski, Linear, Stripe, NN/g, Laws of UX, Refactoring UI, Shape of AI). Re-read it when a design call isn't covered here.
 
 ## Review checklist (before showing the user)
-`make gate` must call `scripts/design_lint.py <web dir>` (stdlib Python; fails on the grep items in step 2).
 1. Screenshot every screen in light and dark at 1440×900, and the main screen at 390px wide.
 2. Grep for violations: hex colors and palette classes outside tokens, `rounded-2xl|3xl`, `bg-gradient`, `backdrop-blur`, emoji, components imported from outside `components/ui/`.
 3. Check each screen against the banned list and the UX rules. Fix it, then re-shoot.
 4. Check loading, empty and error states by forcing each one.
 5. Walk the NN/g heuristics once: system status visible, Undo available, consistent with the rest of the app, errors prevented or explained, shortcuts for experts.
 6. Every AI output shows its footprints and its sources, and can be edited or undone.
+7. `make gate` calls `scripts/design_lint.py <web dir>` and it prints `design lint: clean`.

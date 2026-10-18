@@ -72,7 +72,7 @@ PRIVACY_TERMS='handle|employer|family-name'  # extended regex, case-insensitive
 PRIVACY_ALLOW='LICENSE:Copyright (c) 2026 Your Name'  # exact lines to let through
 ```
 
-Without the config or the denylist, the check fails rather than passing silently. Make it run before every commit:
+Without the config or the denylist, the check fails rather than passing silently. `.privacy.local` is per checkout, so in a git worktree set `PRIVACY_CONFIG` instead. Make it run before every commit:
 
 ```sh
 printf '#!/bin/sh\nexec "$(git rev-parse --show-toplevel)/scripts/privacy_check.sh"\n' > .git/hooks/pre-commit
