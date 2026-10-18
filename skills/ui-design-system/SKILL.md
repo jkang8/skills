@@ -12,7 +12,7 @@ metadata:
 # UI design system
 
 ## When to use
-Any product UI the user asks for: dashboards, demos, internal tools. Put these rules in the coding agent's brief (see coding-orchestration). Review screenshots against the checklist before showing the user anything.
+Any product UI the user asks for: dashboards, demos, internal tools. Put these rules in the coding agent's brief (see coding-orchestration). Check screenshots against the checklist before the user sees anything: in an orchestrated build the independent reviewer does it (the `review` skill), and when you work alone you do.
 
 The bar: tasteful, AI-native, slick, no AI slop. Reference points: Linear, Vercel, Stripe dashboards. Dense, calm, data-forward.
 
