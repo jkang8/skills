@@ -41,7 +41,11 @@ run_one() { # $1 task, $2 arm, $3 run index
     $extra > "$d/agent.txt" 2>&1) || true
   git -C "$w" add -A && git -C "$w" diff --cached > "$d/changes.diff"; rm -rf "$w/.git"
   # The judge can't run anything, so the task's tests run here and it reads their raw output.
-  [ -f "$TASKS/tests" ] && { (cd "$w" && sh -c "$(cat "$TASKS/tests")") > "$d/tests.txt" 2>&1; echo "(exit $?)" >> "$d/tests.txt"; }
+  # (an `if`, so failing tests don't trip set -e and silently drop this run from the table)
+  if [ -f "$TASKS/tests" ]; then
+    if (cd "$w" && sh -c "$(cat "$TASKS/tests")") > "$d/tests.txt" 2>&1; then rc=0; else rc=$?; fi
+    echo "(exit $rc)" >> "$d/tests.txt"
+  fi
   hits="$(check "$w" "$d/check.txt")"
   # Judge blind: a copy whose path doesn't name the arm.
   b="$(mktemp -d "$RUN/blind.XXXXXX")"; cp -R "$w/." "$b/"; cp "$d/changes.diff" "$b/.changes.diff"
