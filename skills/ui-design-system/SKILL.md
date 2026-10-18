@@ -1,7 +1,7 @@
 ---
 name: ui-design-system
 description: "Use when building UI: tokens, closed component set, review."
-version: 1.3.1
+version: 1.3.2
 license: MIT
 metadata:
   hermes:
@@ -47,6 +47,9 @@ Adding one: only when composing the set can't meet the need. First write three l
 - Accessibility: WCAG AA in both themes, labels on every input, `aria-label` on icon-only buttons.
 - Buttons and primary actions are **short verb phrases, up to 3 words, ideally fewer**: "Approve", "Fix notes", "Re-run". Never a full sentence in a button, never "we"/"I" ("Notify me", not "We'll email you"), never an explanation inside the control. A sentence that must be shown goes in the nearby text; if a user needs to know what clicking does first, use a Tooltip or a one-line helper under the button.
 - Labels: short, specific, sentence case ("3 invoices overdue", not "Unlock hidden revenue"). No marketing copy in the app.
+- Sentences: one idea each, about 12 words at most, with no parentheticals, semicolons or chained clauses.
+- State what is, not what isn't: "You approve every draft", not "Nothing is sent without you". Explain totals with layout (sections), not negative tags. Hide zero-states like "$0 handled".
+- Show a figure once per card, never twice. At most one pill per row; the rest is plain text.
 - Write for the least technical reader: one action leads per view, detail is one click away, and the trust guarantee is said once (more in `references/clarity.md`).
 - AI features earn their place by doing work, not describing it: notice things before anyone asks, prepare the fix, hand a person a decision, and show the source. Numbers people must audit (totals, rules, statistics) stay deterministic; AI reads, flags and drafts. Fall back to deterministic output when AI is unavailable.
 
