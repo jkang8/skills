@@ -1,14 +1,16 @@
 #!/bin/sh
 # Privacy gate: fails if anything that would be committed contains personal data. Run before every commit.
 #   scripts/privacy_check.sh
-# Personal terms, the denylist and the guard's location live in a local config, never in the repo:
+# Personal terms and the denylist's location live in a local config, never in the repo:
 # $PRIVACY_CONFIG, or .privacy.local at the repo root (gitignored). See README "Privacy gate".
+# Self-contained: scripts/privacy_scan.py (stdlib) does the email, secret and denylist checks.
 set -eu
 REPO="$(cd "$(dirname "$0")/.." && pwd)"
 CONFIG="${PRIVACY_CONFIG:-$REPO/.privacy.local}"
 [ -f "$CONFIG" ] || { echo "privacy check: no config at $CONFIG (fails closed)"; exit 2; }
 . "$CONFIG"
-: "${PRIVACY_PYTHON:?}" "${PRIVACY_GUARD:?}" "${PRIVACY_DENYLIST:?}" "${PRIVACY_TERMS:?}"
+: "${PRIVACY_DENYLIST:?}" "${PRIVACY_TERMS:?}"
+PY="${PRIVACY_PYTHON:-python3}"
 [ -f "$PRIVACY_DENYLIST" ] || { echo "privacy check: denylist missing (fails closed)"; exit 2; }
 
 # Generic leaks; bracketed so this file doesn't match itself.
@@ -29,10 +31,9 @@ printf '%s\n' "${PRIVACY_ALLOW:-}" | while IFS= read -r rule; do
 done
 
 fail=0
-echo "== privacy guard (denylist, emails, secrets)"
+echo "== privacy scan (denylist, emails, secrets)"
 git -C "$WORK" init -q && git -C "$WORK" add -A
-PYTHONPATH="${PRIVACY_GUARD_PYTHONPATH:-}" MEMORY_STEM_DENYLIST="$PRIVACY_DENYLIST" \
-  "$PRIVACY_PYTHON" "$PRIVACY_GUARD" "$WORK" || fail=1
+"$PY" "$REPO/scripts/privacy_scan.py" "$WORK" "$PRIVACY_DENYLIST" || fail=1
 
 echo "== term grep (contents, file names, commit messages)"
 hits="$( (cd "$WORK" && grep -rniE --exclude-dir=.git "$GENERIC|$PRIVACY_TERMS" . || true)
