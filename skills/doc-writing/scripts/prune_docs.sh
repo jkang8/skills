@@ -18,6 +18,11 @@ BASE="${PRUNE_BASE:-origin/main}"
 HOME_DIR="${PRUNE_HOME:-${XDG_STATE_HOME:-$HOME/.local/state}/prune-docs/$NAME}"
 RUNS="$HOME_DIR/runs" WTS="$HOME_DIR/worktrees"
 say() { echo "doc pruner ($NAME): $*"; }
+limit() { # $1 seconds, rest = command: on timeout kill the command's whole process group and exit 142
+  perl -e 'my $t = shift; my $pid = fork // die; if (!$pid) { setpgrp(0, 0); exec @ARGV or exit 127 }
+    $SIG{ALRM} = sub { kill "TERM", -$pid; sleep 5; kill "KILL", -$pid; exit 142 }; alarm $t; waitpid($pid, 0);
+    exit($? & 127 ? 128 + ($? & 127) : $? >> 8)' "$@"
+}
 json() { python3 -c 'import json,sys
 try: v = json.load(open(sys.argv[1])).get(sys.argv[2], "")
 except Exception: v = ""
@@ -25,12 +30,17 @@ print(v)' "$1" "$2"; }
 hits() { python3 "$HERE/doc_check.py" "$1" | grep -cv 'clean$'; }
 
 mkdir -p "$RUNS" "$WTS"
-mkdir "$RUNS/.lock" 2>/dev/null || { say "another run is active, skipped"; exit 0; }
+if ! mkdir "$RUNS/.lock" 2>/dev/null; then  # a killed run leaves its lock; take it over once its pid is gone
+  pid="$(cat "$RUNS/.lock/pid" 2>/dev/null)"
+  if [ -n "$pid" ] && kill -0 "$pid" 2>/dev/null; then say "another run is active, skipped"; exit 0; fi
+  say "removing a stale lock (pid ${pid:-unknown} is gone)"; rm -rf "$RUNS/.lock"; mkdir "$RUNS/.lock" || exit 1
+fi
+echo $$ > "$RUNS/.lock/pid"
 STAMP="$(date +%Y%m%d-%H%M%S)"; RUN="$RUNS/$STAMP"; BR="prune/$STAMP"; WT="$WTS/prune-$STAMP"
 cleanup() {
   [ -d "$WT" ] && git -C "$REPO" worktree remove --force "$WT" 2>/dev/null
   git -C "$REPO" branch -D "$BR" >/dev/null 2>&1
-  rmdir "$RUNS/.lock"
+  rm -rf "$RUNS/.lock"
 }
 trap cleanup EXIT
 trap 'exit 1' INT TERM
@@ -48,7 +58,7 @@ git -C "$REPO" worktree add -q -b "$BR" "$WT" "$BASE" || { say "worktree failed"
 python3 "$HERE/doc_check.py" "$WT" > "$RUN/doc_check_before.txt"; before="$(hits "$WT")"
 # The prompt names the run folder literally: the agent has file tools only and can't read env vars.
 sed "s|\$PRUNE_RUN|$RUN|g" "$HERE/prune-docs.md" > "$RUN/prompt.md"
-(cd "$WT" && perl -e 'alarm shift; exec @ARGV' "$LIMIT" \
+(cd "$WT" && limit "$LIMIT" \
   claude -p --model opus --output-format json --no-session-persistence --restricted --tools "Read,Edit,Write,Glob,Grep" \
     --permission-mode acceptEdits --add-dir "$RUN" < "$RUN/prompt.md" > "$RUN/claude.json" 2> "$RUN/claude.err") 2>/dev/null
 # (prompt on stdin: --add-dir takes several values and would swallow a prompt argument)
