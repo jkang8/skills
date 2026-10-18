@@ -20,11 +20,12 @@ echo "raw outputs: $RUN"
   done; } > "$RUN/skill.md"
 
 check() { # $1 work dir, $2 output file -> number of check-script hits, or "-" for skills without one
-  case $SKILL in ui-design-system|doc-writing|repo-setup) ;; *) echo "-"; return 0 ;; esac
+  case $SKILL in ui-design-system|doc-writing|repo-setup|architecture) ;; *) echo "-"; return 0 ;; esac
   case $SKILL in
     ui-design-system) python3 "$ROOT/skills/ui-design-system/scripts/design_lint.py" "$1/web" ;;
     doc-writing) python3 "$ROOT/skills/doc-writing/scripts/doc_check.py" "$1" ;;
     repo-setup) python3 "$ROOT/skills/repo-setup/scripts/stack_check.py" "$1" ;;
+    architecture) python3 "$ROOT/skills/architecture/scripts/arch_check.py" "$1" ;;
   esac > "$2" 2>&1 || true
   grep -cvE 'clean$' "$2" || true
 }
@@ -32,18 +33,19 @@ check() { # $1 work dir, $2 output file -> number of check-script hits, or "-" f
 run_one() { # $1 task, $2 arm, $3 run index
   d="$RUN/$1/$2-$3"; w="$d/work"; mkdir -p "$w"
   cp -R "$ROOT/evals/fixtures/$(cat "$TASKS/$1/fixture")/." "$w/"
-  git -C "$w" init -q
+  git -C "$w" init -q && git -C "$w" add -A && git -C "$w" -c user.name=eval -c user.email=eval@example.com commit -qm fixture
   extra=""; [ "$2" = with ] && extra="--append-system-prompt-file $RUN/skill.md"
   # shellcheck disable=SC2086
   (cd "$w" && claude -p "$(cat "$TASKS/$1/prompt.md")" --model "$MODEL" --disable-slash-commands \
     --permission-mode acceptEdits --allowedTools "Read,Write,Edit,Glob,Grep,Bash(python3:*),Bash(ls:*)" \
     $extra > "$d/agent.txt" 2>&1) || true
-  rm -rf "$w/.git"
+  git -C "$w" add -A && git -C "$w" diff --cached > "$d/changes.diff"; rm -rf "$w/.git"
   # The judge can't run anything, so the task's tests run here and it reads their raw output.
   [ -f "$TASKS/tests" ] && { (cd "$w" && sh -c "$(cat "$TASKS/tests")") > "$d/tests.txt" 2>&1; echo "(exit $?)" >> "$d/tests.txt"; }
   hits="$(check "$w" "$d/check.txt")"
   # Judge blind: a copy whose path doesn't name the arm.
-  b="$(mktemp -d "$RUN/blind.XXXXXX")"; cp -R "$w/." "$b/"; [ -f "$d/tests.txt" ] && cp "$d/tests.txt" "$b/.tests.txt"
+  b="$(mktemp -d "$RUN/blind.XXXXXX")"; cp -R "$w/." "$b/"; cp "$d/changes.diff" "$b/.changes.diff"
+  [ -f "$d/tests.txt" ] && cp "$d/tests.txt" "$b/.tests.txt"
   python3 - "$ROOT/evals/judge.md" "$TASKS/$1/prompt.md" "$TASKS/rubric.md" > "$b/.judge-prompt" <<'PY'
 import sys
 j, t, r = (open(p).read() for p in sys.argv[1:])

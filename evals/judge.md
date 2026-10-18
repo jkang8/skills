@@ -5,7 +5,7 @@ The task the agent was given:
 TASK_PROMPT
 </task>
 
-The agent's output is the files in the current directory (it started from a fixture; judge what's there now). Read the files you need. You cannot edit or run anything; if `.tests.txt` exists, it is the raw output of the task's tests, run after the agent finished.
+The agent started from a fixture; the files in the current directory are the result, and `.changes.diff` shows exactly what the agent changed. Judge the change: code that was already there and that the task didn't require touching is not the agent's fault. Read the files you need. You cannot edit or run anything; if `.tests.txt` exists, it is the raw output of the task's tests, run after the agent finished.
 
 Score every rubric item 0 or 1. Give 1 only when the item is clearly met; when unsure, 0. One line of evidence each (file:line or a short quote).
 
