@@ -6,9 +6,12 @@
 # Flow: worktree -> haiku summarizes the signals -> opus builds one change from improve.md -> gate. If opus fails
 # the gate twice on its change, one retry with fable; if it quit early or skipped the test, one retry with opus
 # --effort high. A passing change becomes a PR with model and effort in the body. Prints one summary line.
-# Env: IMPROVE_GATE (default `make gate`), IMPROVE_TEXT_CHECK (optional command run on the PR title, body and commit
-# messages, e.g. a privacy check), IMPROVE_HOME (runs and worktrees; outside the repo), IMPROVE_TIME_LIMIT (seconds
-# per attempt), IMPROVE_BASE, IMPROVE_DRY_RUN=1 (no gh, no push, no PR).
+# Trust: the builder has Bash only for an allowlist (the gate, test runners, local git; IMPROVE_ALLOW_BASH adds
+# comma-separated rules such as "Bash(uv run pytest:*)"). Issue and PR bodies reach it only from OWNER, MEMBER or
+# COLLABORATOR authors; anyone else's items arrive as number and title, marked untrusted.
+# Env: IMPROVE_GATE (default `make gate`), IMPROVE_TEXT_CHECK (command run on the PR title, body and commit messages,
+# e.g. a privacy check; required before pushing unless IMPROVE_NO_TEXT_CHECK=1), IMPROVE_HOME (runs and worktrees;
+# outside the repo), IMPROVE_TIME_LIMIT (seconds per attempt), IMPROVE_BASE, IMPROVE_DRY_RUN=1 (no gh, no push, no PR).
 set -u
 HERE="$(cd "$(dirname "$0")" && pwd)"
 REPO="$(cd "${1:?usage: improve.sh <repo-checkout> [signals-data-path]}" && pwd)"
@@ -21,18 +24,28 @@ HOME_DIR="${IMPROVE_HOME:-${XDG_STATE_HOME:-$HOME/.local/state}/improve/$NAME}"
 RUNS="$HOME_DIR/runs" WTS="$HOME_DIR/worktrees"
 DRY="${IMPROVE_DRY_RUN:-}"
 say() { echo "improver ($NAME): $*"; }
+limit() { # $1 seconds, rest = command: on timeout kill the command's whole process group (gates, evals) and exit 142
+  perl -e 'my $t = shift; my $pid = fork // die; if (!$pid) { setpgrp(0, 0); exec @ARGV or exit 127 }
+    $SIG{ALRM} = sub { kill "TERM", -$pid; sleep 5; kill "KILL", -$pid; exit 142 }; alarm $t; waitpid($pid, 0);
+    exit($? & 127 ? 128 + ($? & 127) : $? >> 8)' "$@"
+}
 json() { python3 -c 'import json,sys
 try: v = json.load(open(sys.argv[1])).get(sys.argv[2], "")
 except Exception: v = ""
 print(v)' "$1" "$2"; }
 
 mkdir -p "$RUNS" "$WTS"
-mkdir "$RUNS/.lock" 2>/dev/null || { say "another run is active, skipped"; exit 0; }
+if ! mkdir "$RUNS/.lock" 2>/dev/null; then  # a killed run leaves its lock; take it over once its pid is gone
+  pid="$(cat "$RUNS/.lock/pid" 2>/dev/null)"
+  if [ -n "$pid" ] && kill -0 "$pid" 2>/dev/null; then say "another run is active, skipped"; exit 0; fi
+  say "removing a stale lock (pid ${pid:-unknown} is gone)"; rm -rf "$RUNS/.lock"; mkdir "$RUNS/.lock" || exit 1
+fi
+echo $$ > "$RUNS/.lock/pid"
 STAMP="$(date +%Y%m%d-%H%M%S)"; RUN="$RUNS/$STAMP"; BR="improve/$STAMP"; WT="$WTS/improve-$STAMP"
 cleanup() {
   [ -d "$WT" ] && git -C "$REPO" worktree remove --force "$WT" 2>/dev/null
   git -C "$REPO" branch -D "$BR" >/dev/null 2>&1
-  rmdir "$RUNS/.lock"
+  rm -rf "$RUNS/.lock"
 }
 trap cleanup EXIT
 trap 'exit 1' INT TERM
@@ -46,9 +59,12 @@ else
     || { say "can't list PRs (gh), skipped"; exit 1; }
   [ "$open" = 0 ] || { say "an improver PR is already open, skipped"; exit 0; }
   git -C "$REPO" fetch -q origin || { say "fetch failed"; exit 1; }
-  (cd "$REPO" && gh issue list --label improvement --state open --limit 20 --json number,title,body) > "$RUN/issues.json" 2>/dev/null \
-    || echo "[]" > "$RUN/issues.json"
-  (cd "$REPO" && gh pr list --state open --json number,title,body) > "$RUN/open_prs.json" 2>/dev/null || echo "[]" > "$RUN/open_prs.json"
+  # REST, not `gh issue list`: only the API returns author_association, which decides whose text the agent may read.
+  (cd "$REPO" && gh api 'repos/{owner}/{repo}/issues?labels=improvement&state=open&per_page=20') > "$RUN/issues_raw.json" 2>/dev/null \
+    && python3 "$HERE/trusted_items.py" "$RUN/issues_raw.json" > "$RUN/issues.json" || echo "[]" > "$RUN/issues.json"
+  (cd "$REPO" && gh api 'repos/{owner}/{repo}/pulls?state=open&per_page=50') > "$RUN/prs_raw.json" 2>/dev/null \
+    && python3 "$HERE/trusted_items.py" "$RUN/prs_raw.json" > "$RUN/open_prs.json" || echo "[]" > "$RUN/open_prs.json"
+  rm -f "$RUN/issues_raw.json" "$RUN/prs_raw.json"
 fi
 git -C "$REPO" worktree add -q -b "$BR" "$WT" "$BASE" || { say "worktree failed"; exit 1; }
 [ -x "$WT/scripts/signals" ] && [ -f "$WT/IMPROVE.md" ] || { say "$BASE has no scripts/signals or IMPROVE.md, skipped"; exit 1; }
@@ -58,12 +74,16 @@ git -C "$REPO" worktree add -q -b "$BR" "$WT" "$BASE" || { say "worktree failed"
 (cd "$WT" && ./scripts/signals ${DATA:+"$DATA"}) > "$RUN/signals_raw.txt" 2>&1 || say "scripts/signals exited non-zero; using its output anyway"
 # (prompts go on stdin: --tools and --add-dir take several values and would swallow a prompt argument)
 echo "Summarize signals_raw.txt (a repo's weak spots: failures, misses, metrics) for an engineer choosing one improvement. List each distinct problem with counts, then the patterns across them. Mark any item that quotes private data (names, emails, user text, personal records) as PRIVATE and describe it generically. Under 60 lines. Output the summary only." \
-  | (cd "$RUN" && perl -e 'alarm shift; exec @ARGV' 600 claude -p --model haiku --no-session-persistence --restricted --tools "Read" \
+  | (cd "$RUN" && limit 600 claude -p --model haiku --no-session-persistence --restricted --tools "Read" \
     > "$RUN/signals.md" 2> "$RUN/signals.err")
 [ -s "$RUN/signals.md" ] || { say "no PR: the signals summary failed [logs: $RUN]"; exit 1; }
 
 TOOLS="Bash,Read,Edit,Write,Glob,Grep"
-DENY="Bash(git push*) Bash(gh *)"
+# No blanket Bash: only the gate, test runners and local git run without a prompt (and -p has no prompt, so
+# anything else is denied).
+# Comma-separated: rules contain spaces.
+ALLOW="Read,Edit,Write,Glob,Grep,Bash($GATE),Bash(make test),Bash(make gate),Bash(python3 -m unittest:*),Bash(python3 -m pytest:*),Bash(pytest:*),Bash(uv run pytest:*),Bash(pnpm test:*),Bash(git add:*),Bash(git commit:*),Bash(git status:*),Bash(git diff:*),Bash(git log:*),Bash(ls:*)${IMPROVE_ALLOW_BASH:+,$IMPROVE_ALLOW_BASH}"
+DENY="Bash(git push:*),Bash(gh:*),Bash(curl:*),Bash(wget:*)"
 attempt() { # $1 = attempt number, rest = model flags
   n=$1; shift
   A="$RUN/a$n"; mkdir -p "$A"; cp "$RUN/signals.md" "$RUN/issues.json" "$RUN/open_prs.json" "$A/"
@@ -71,9 +91,9 @@ attempt() { # $1 = attempt number, rest = model flags
   sed "s|IMPROVE_RUN_DIR|$A|g" "$HERE/improve.md" > "$A/prompt.md"
   [ -f "$A/previous/retry.md" ] && { echo; cat "$A/previous/retry.md"; } >> "$A/prompt.md"
   echo "$*" > "$A/flags"
-  (cd "$WT" && perl -e 'alarm shift; exec @ARGV' "$LIMIT" \
+  (cd "$WT" && limit "$LIMIT" \
     claude -p --output-format json --no-session-persistence --restricted --tools "$TOOLS" \
-      --permission-mode acceptEdits --allowedTools "$TOOLS" --disallowedTools "$DENY" \
+      --permission-mode acceptEdits --allowedTools "$ALLOW" --disallowedTools "$DENY" \
       --add-dir "$A" "$@" < "$A/prompt.md" > "$A/claude.json" 2> "$A/claude.err")
   echo $? > "$A/exit"
 }
@@ -134,6 +154,9 @@ effort="$(sed -n 's/.*--effort \([a-z]*\).*/\1/p' "$A/flags")"
 } > "$RUN/pr_body_final.md"
 json "$A/result.json" title > "$RUN/pr_title.txt"
 git -C "$WT" log "$BASE"..HEAD --format=%B > "$RUN/commits.txt"
+if [ -z "${IMPROVE_TEXT_CHECK:-}" ] && [ "${IMPROVE_NO_TEXT_CHECK:-}" != 1 ] && [ "$DRY" != 1 ]; then
+  say "no PR: set IMPROVE_TEXT_CHECK (e.g. a privacy check) or IMPROVE_NO_TEXT_CHECK=1 [logs: $RUN]"; exit 1
+fi
 if [ -n "${IMPROVE_TEXT_CHECK:-}" ]; then
   sh -c "$IMPROVE_TEXT_CHECK \"\$@\"" _ "$RUN/pr_title.txt" "$RUN/pr_body_final.md" "$RUN/commits.txt" > "$RUN/text_check.txt" 2>&1 \
     || { say "no PR: the PR text or commit messages failed IMPROVE_TEXT_CHECK [logs: $RUN]"; exit 1; }
