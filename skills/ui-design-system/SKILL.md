@@ -63,4 +63,4 @@ Purple/blue gradients · glassmorphism · ✨ sparkle icons · emoji in UI · "A
 6. Every AI output shows its footprints and its sources, and can be edited or undone.
 7. `make gate` calls `scripts/design_lint.py <web dir>` and it prints `design lint: clean`.
 
-Sources and what each contributed: `references/sources.md`.
+Sources and what each contributed: `references/sources.md`. Re-read it when a design call isn't covered here.
