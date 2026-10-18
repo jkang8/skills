@@ -65,28 +65,5 @@ for t in "$TASKS"/*/; do
 done
 wait
 
-# Table: per task and arm, mean check hits and mean judge score over the runs.
-cat "$RUN"/*/*/result.txt | python3 -c '
-import sys, collections, datetime
-rows = collections.defaultdict(list)
-for line in sys.stdin:
-    task, arm, _, hits, score = line.split()
-    rows[(task, arm)].append((hits, score))
-def mean(xs):
-    xs = [x for x in xs if x not in ("-", "?")]
-    return f"{sum(map(float, xs)) / len(xs):.1f}" if xs else "-"
-def agg(v):
-    s = [x.split("/") for _, x in v if x != "?"]
-    pct = mean([str(100 * int(a) / int(b)) for a, b in s])
-    return mean([h for h, _ in v]), (f"{mean([a for a, _ in s])}/{s[0][1]}({pct}%)" if s else "?")
-skill, model, judge, log = sys.argv[1:5]
-print(f"| task | check hits without | check hits with | judge without | judge with |")
-print("|---|---|---|---|---|")
-day = datetime.date.today().isoformat()
-with open(log, "a") as f:
-    for task in sorted({t for t, _ in rows}):
-        (hw, jw), (hh, jh) = agg(rows[(task, "without")]), agg(rows[(task, "with")])
-        print(f"| {task} | {hw} | {hh} | {jw} | {jh} |")
-        n = len(rows[(task, "with")])
-        f.write(f"{day} {skill} {task} model={model} judge={judge} n={n} hits_without={hw} hits_with={hh} judge_without={jw} judge_with={jh}\n")
-' "$SKILL" "$MODEL" "$JUDGE" "$ROOT/evals/results.log"
+# Table and log lines: per task and arm, mean check hits and mean judge score over the runs.
+cat "$RUN"/*/*/result.txt | python3 "$ROOT/evals/summarize.py" "$SKILL" "$MODEL" "$JUDGE" "$ROOT/evals/results.log"

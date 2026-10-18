@@ -1,6 +1,6 @@
 # skills
 
-Seven agent skills you can drop into Claude Code or Hermes. Each one is a single `SKILL.md` with a short trigger description; personal details (registry names, paths, cost policy) go in a local override file, so the shared text stays generic.
+Seven agent skills for Claude Code and Hermes. Each is a folder: `SKILL.md` holds the rules and a checklist, `references/` the reasoning and examples, and `scripts/` the checks a repo's `make gate` calls. Anything personal, like a registry name, a machine path or a cost policy, goes in a local override file, so the shared text stays generic.
 
 | Skill | Use it when | What it gives the agent |
 |---|---|---|
@@ -56,10 +56,15 @@ The categories are only folders; pick any. If Hermes edits a linked `SKILL.md` i
 Each skill tells the agent to read `<name>.local.md` before following the skill, from either the skill's own folder or `overrides/` at the root of this checkout (the agent resolves symlinks to find it). Values in the override fill the skill's placeholders; rules in it add to the skill's and win on conflict.
 
 1. Copy the template: `cp overrides/repo-setup.example.md overrides/repo-setup.local.md`.
-2. Fill in your values (for example, your registry namespace and commit identity).
-3. Nothing else: `*.local.md` is gitignored, so it never reaches a commit.
+2. Fill in your values (for example, your registry namespace and commit identity). `*.local.md` is gitignored, so the file never reaches a commit.
 
 To keep overrides outside the checkout, symlink them in: `ln -s ~/private/repo-setup.local.md overrides/`.
+
+## Checks and evals
+
+`make gate` runs every script's fixture tests, `doc_check.py` on this repo, `arch_check.py`, `sec_check.sh` and the privacy check. It passes when it ends with `PRIVACY CHECK PASS`. The checks that install tools or need the network have their own scripts: `skills/architecture/scripts/check_templates.sh`, `skills/architecture/references/examples/check.sh` and `skills/security/scripts/test_sec_check.sh`.
+
+`evals/run.sh <skill>` runs a skill's tasks headless, without and with the skill, and prints a comparison table. `evals/README.md` covers how to run and read it.
 
 ## Privacy gate
 
