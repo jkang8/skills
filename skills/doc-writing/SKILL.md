@@ -68,7 +68,7 @@ The in/out test for every line: would a capable agent or new engineer, reading o
 - Net-zero by default: a PR that grows docs says what it replaced or why growth is needed.
 - One home per fact; delete duplicates and link.
 - Agents' session notes go in the PR or their own memory, not repo docs.
-- A scheduled pruning run that may only delete. Details: `references/in-or-out.md`.
+- A scheduled pruning run that may only delete: `scripts/prune_docs.sh <repo>` opens one PR, and only if net lines go down and `doc_check.py` gets no worse. Details: `references/in-or-out.md`.
 
 ## Keeping docs true
 - Docs change in the same PR as the code they describe; a behavior change without its doc goes back.

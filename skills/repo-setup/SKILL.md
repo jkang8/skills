@@ -38,6 +38,7 @@ One private repo `<org>/ui` holds the restyled components as a shadcn registry `
 ## Repo root
 - `Makefile` (or `justfile`): `dev` (db, api, web together), `test`, `gate` (lint, types, tests, type-generation diff), `db-migrate`.
 - `.env.example` with every variable and no values; `.env` gitignored.
+- Schedule doc-writing's pruner monthly: `0 9 1 * * <skills-checkout>/skills/doc-writing/scripts/prune_docs.sh <repo-checkout>`.
 - **CI is optional.** Ask the user if it isn't clear. No CI for prototypes, demos and solo experiments; add it with collaborators, PR-opening agents or a deployment. With CI: `.github/workflows/ci.yml` runs `make gate` on PRs and `main` requires it. Without: agents run `make gate` and paste the output in the PR. Either way, the user merges.
 - All check logic lives in the Makefile, never the workflow, so adding CI later is one file plus branch protection.
 - `AGENTS.md` (the agent context file), `CLAUDE.md` containing only `@AGENTS.md`, and a README, per doc-writing.
