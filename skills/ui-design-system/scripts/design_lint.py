@@ -2,7 +2,10 @@
 """Fail on ui-design-system violations in a frontend tree. Stdlib only.
 
 usage: design_lint.py <dir> [--tokens GLOB ...]
-Tokens files (default: anything under a tokens/ folder, tokens.css, theme.css) may define colors and gradients.
+Tokens files may define colors and gradients, in any form (`--x: oklch(...)`, Tailwind v4 `@theme`, ...). By default:
+anything under a tokens/ folder, tokens.css, theme.css, and the shadcn token stylesheets at the app root
+(src/index.css, src/globals.css, app/globals.css). Components and pages never may, custom property or not.
+Pass --tokens GLOB (repeatable) to name a different tokens file; it replaces the defaults.
 A line containing `design-lint: ignore` is skipped. Exits 1 with `path:line: rule: text` per hit.
 """
 from __future__ import annotations
@@ -14,7 +17,12 @@ from pathlib import Path, PurePath
 
 EXTS = {".ts", ".tsx", ".js", ".jsx", ".css", ".scss", ".html", ".vue", ".svelte"}
 SKIP_DIRS = {"node_modules", "dist", "build", ".git", ".next", "coverage", "public"}
-DEFAULT_TOKENS = ["tokens/*", "tokens/**/*", "tokens.css", "theme.css"]
+# Anchored to the app root so `src/components/index.css` is not a tokens file.
+DEFAULT_TOKENS = [
+    "tokens/*", "tokens/**/*", "tokens.css", "theme.css",
+    "src/index.css", "src/globals.css", "src/styles/index.css", "src/styles/globals.css",  # Vite + shadcn
+    "app/globals.css", "src/app/globals.css",  # Next + shadcn
+]
 PALETTE = "slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose"
 UTIL = "bg|text|border|ring|from|via|to|fill|stroke|outline|divide|placeholder|shadow|decoration|accent|caret"
 
