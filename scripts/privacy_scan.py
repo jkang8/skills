@@ -4,7 +4,9 @@
 usage: privacy_scan.py <dir> <denylist-file>
 Scans files git would commit (tracked, plus untracked and not ignored). The denylist is a local file, one term
 per line, `#` comments allowed; it never lives in the repo. Exits 0 clean, 1 on any hit, 2 if it can't scan
-(missing denylist or not a git tree), so a broken setup fails closed.
+(missing denylist or not a git tree), so a broken setup fails closed. A file it can't read as UTF-8 text is a
+hit too (only plain image, font and video files are skipped): gitignore it, or commit it as text.
+Hits name a location, never the matched text, because gate output gets pasted into PR bodies.
 """
 from __future__ import annotations
 
@@ -21,7 +23,9 @@ SECRET = re.compile(
     r"|(?:password|passwd|pwd|secret|api[_-]?key|token)\s*[:=]\s*\S{6,}|\b(?:\d[ -]?){13,19}\b",
     re.I,
 )
-BINARY = (".png", ".jpg", ".jpeg", ".gif", ".ico", ".pdf", ".sqlite", ".mp4", ".woff", ".woff2")
+# Skipped because they can't be read as text. PDFs and SQLite files are not here: they can hold personal data.
+BINARY = (".png", ".jpg", ".jpeg", ".gif", ".ico", ".webp", ".mp4", ".mov", ".woff", ".woff2", ".ttf", ".otf", ".eot")
+SELF = "privacy_scan.py"
 
 
 def files(root: Path) -> list[Path]:
@@ -40,15 +44,18 @@ def scan(root: Path, terms: list[str]) -> list[str]:
     for f in files(root):
         if f.is_symlink():
             continue
+        rel = f.relative_to(root).as_posix()
         try:
             text = f.read_text(encoding="utf-8")
         except (OSError, UnicodeDecodeError):
+            hits.append(f"{rel}:1: can't be read as UTF-8 text, so it can't be scanned (fails closed: gitignore it or commit it as text)")
             continue
         for n, line in enumerate(text.splitlines(), 1):
-            where = f"{f.relative_to(root).as_posix()}:{n}"
-            hits += [f"{where}: email {e}" for e in EMAIL.findall(line) if not ALLOWED_EMAIL.search(e)]
-            # pattern definitions (this file's own) aren't secrets
-            if SECRET.search(line) and "re.compile" not in line and not line.lstrip().startswith(("r\"", "r'", "#")):
+            where = f"{rel}:{n}"
+            hits += [f"{where}: email address" for e in EMAIL.findall(line) if not ALLOWED_EMAIL.search(e)]
+            # Only this scanner's own pattern definitions are exempt, not comments or other files' regexes.
+            own_pattern = f.name == SELF and ("re.compile" in line or line.lstrip().startswith(("r\"", "r'")))
+            if SECRET.search(line) and not own_pattern:
                 hits.append(f"{where}: looks like a secret")
             hits += [f"{where}: denylisted term" for p in pats if p.search(line)]
     return hits
