@@ -1,9 +1,12 @@
 #!/bin/sh
-# Security gate: ruff S (bandit rules), gitleaks, pip-audit, pnpm audit. Exits 1 if any tool finds a problem.
+# Security gate: ruff S (bandit rules), gitleaks, pip-audit, pnpm audit.
 #   sec_check.sh <repo-dir>
 # Each tool runs only when the repo has what it checks (Python files, a lockfile...). Missing tools are
-# installed on first use (uvx for ruff and pip-audit, a gitleaks release into SEC_CHECK_HOME); a tool is skipped
-# with a warning only if it can't be installed. Prints one line per tool, then `sec check: clean` or a failure.
+# installed on first use (uvx for ruff and pip-audit, a gitleaks release into SEC_CHECK_HOME). Prints one line per
+# tool, then `sec check: clean` or a failure. Exit 0: every applicable tool ran and found nothing. Exit 1: a tool
+# found a problem. Exit 2: an applicable tool could not run (`NOT RUN`); a gate that didn't check must not pass.
+# SEC_CHECK_ALLOW_SKIP (space- or comma-separated: ruff gitleaks pip-audit pnpm) names tools allowed to not run,
+# e.g. on a machine with no network; it is printed, and off by default.
 #
 # Tool versions are pinned, so a gate run is reproducible and a compromised "latest" can't slip in. gitleaks is
 # downloaded only for the exact version below and only if its SHA-256 matches the one pinned here (taken from the
@@ -23,10 +26,17 @@ set -u
 REPO="$(cd "${1:?usage: sec_check.sh <repo-dir>}" && pwd)"
 TOOLS_DIR="${SEC_CHECK_HOME:-${XDG_CACHE_HOME:-$HOME/.cache}/sec_check}/bin"
 OUT="$(mktemp -d)"; trap 'rm -rf "$OUT"' EXIT
-fail=0 skipped=0
+fail=0 notrun=0 allowed=""
+ALLOW_SKIP=" $(printf '%s' "${SEC_CHECK_ALLOW_SKIP:-}" | tr ',' ' ') "
 ok() { echo "ok    $1"; }
 bad() { echo "FAIL  $1"; sed 's/^/      /' "$2" | head -40; fail=1; }
-skip() { echo "skip  $1 (warning: $2)"; skipped=$((skipped + 1)); }
+skip() { # a tool that applies could not run: a failure unless the caller explicitly allowed it
+  key="${1%% *}"
+  case "$ALLOW_SKIP" in
+    *" $key "*) echo "skip  $1 (warning: $2; allowed by SEC_CHECK_ALLOW_SKIP)"; allowed="$allowed $key" ;;
+    *) echo "NOT RUN  $1: $2"; notrun=$((notrun + 1)) ;;
+  esac
+}
 has() { find "$REPO" -path '*/node_modules' -prune -o -path '*/.git' -prune -o -path '*/.venv' -prune -o -name "$1" -print | grep -q .; }
 first() { find "$REPO" -path '*/node_modules' -prune -o -path '*/.git' -prune -o -name "$1" -print | head -1; }
 uvx_() { if command -v uvx >/dev/null; then uvx -q "$@"; elif command -v uv >/dev/null; then uv tool run -q "$@"; else return 127; fi; }
@@ -88,4 +98,5 @@ if lock="$(first pnpm-lock.yaml)" && [ -n "$lock" ]; then
 else ok "pnpm audit (no pnpm-lock.yaml)"; fi
 
 [ $fail = 0 ] || { echo "sec check: FAIL"; exit 1; }
-[ $skipped = 0 ] && echo "sec check: clean" || echo "sec check: clean ($skipped skipped, see warnings)"
+[ $notrun = 0 ] || { echo "sec check: FAIL ($notrun applicable tool(s) could not run, so the repo was not fully checked; fix that or name the tool in SEC_CHECK_ALLOW_SKIP)"; exit 2; }
+[ -z "$allowed" ] && echo "sec check: clean" || echo "sec check: passed WITHOUT:$allowed (allowed by SEC_CHECK_ALLOW_SKIP)"

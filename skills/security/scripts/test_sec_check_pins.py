@@ -21,11 +21,11 @@ OS = platform.system().lower()
 ARCH = {"aarch64": "arm64", "arm64": "arm64", "x86_64": "x64", "amd64": "x64"}[platform.machine().lower()]
 
 
-def release_tarball(marker: Path) -> bytes:
-    """A tar.gz holding a fake `gitleaks` that records that it ran and reports no leaks."""
+def release_tarball(marker: Path, exit_code: int = 0) -> bytes:
+    """A tar.gz holding a fake `gitleaks` that records that it ran and exits with exit_code (1 = leaks found)."""
     buf = io.BytesIO()
     with tarfile.open(fileobj=buf, mode="w:gz") as tar:
-        body = f"#!/bin/sh\necho ran >> '{marker}'\nexit 0\n".encode()
+        body = f"#!/bin/sh\necho ran >> '{marker}'\nexit {exit_code}\n".encode()
         info = tarfile.TarInfo("gitleaks")
         info.size, info.mode = len(body), 0o755
         tar.addfile(info, io.BytesIO(body))
@@ -49,9 +49,9 @@ class SecCheckPins(unittest.TestCase):
     def publish(self, content: bytes):
         (self.releases / f"gitleaks_{VERSION}_{OS}_{ARCH}.tar.gz").write_bytes(content)
 
-    def run_check(self, pinned: str):
+    def run_check(self, pinned: str, **extra):
         env = {"PATH": "/usr/bin:/bin", "HOME": str(self.root), "SEC_CHECK_HOME": str(self.root / "tools"),
-               "SEC_CHECK_GITLEAKS_BASE": f"file://{self.root / 'releases'}", "SEC_CHECK_GITLEAKS_SHA256": pinned}
+               "SEC_CHECK_GITLEAKS_BASE": f"file://{self.root / 'releases'}", "SEC_CHECK_GITLEAKS_SHA256": pinned, **extra}
         return subprocess.run(["sh", str(SCRIPT), str(self.repo)], capture_output=True, text=True, env=env)
 
     def test_versions_are_pinned_not_latest(self):
@@ -81,12 +81,45 @@ class SecCheckPins(unittest.TestCase):
         self.assertEqual(out.returncode, 1)
         self.assertFalse(self.marker.exists())  # the unverified binary was never executed
 
-    def test_a_platform_without_a_pin_is_skipped_with_a_warning_not_downloaded(self):
+    def test_a_platform_without_a_pin_cannot_run_so_the_check_fails_not_passes(self):
         self.publish(release_tarball(self.marker))
         out = self.run_check("plan9_mips=" + "0" * 64)
-        self.assertIn("skip  gitleaks (warning: no pinned checksum for", out.stdout)
-        self.assertEqual(out.returncode, 0)
-        self.assertFalse(self.marker.exists())
+        self.assertIn("NOT RUN  gitleaks: no pinned checksum for", out.stdout)
+        self.assertIn("sec check: FAIL (1 applicable tool(s) could not run", out.stdout)
+        self.assertNotIn("sec check: clean", out.stdout)
+        self.assertEqual(out.returncode, 2)
+        self.assertFalse(self.marker.exists())  # and nothing unverified was downloaded and run
+
+    def test_allow_skip_is_explicit_and_the_output_says_what_was_not_checked(self):
+        self.publish(release_tarball(self.marker))
+        for allow in ("gitleaks", "ruff,gitleaks", "ruff gitleaks"):
+            out = self.run_check("plan9_mips=" + "0" * 64, SEC_CHECK_ALLOW_SKIP=allow)
+            self.assertEqual(out.returncode, 0, out.stdout)
+            self.assertIn("skip  gitleaks (warning: no pinned checksum for", out.stdout)
+            self.assertIn("allowed by SEC_CHECK_ALLOW_SKIP", out.stdout)
+            self.assertIn("sec check: passed WITHOUT: gitleaks", out.stdout)
+            self.assertNotIn("sec check: clean", out.stdout)
+
+    def test_an_applicable_tool_that_cannot_run_fails(self):
+        tarball = release_tarball(self.marker)
+        self.publish(tarball)
+        (self.repo / "app.py").write_text("print('hi')\n")  # ruff applies, but there is no uvx on this PATH
+        pin = f"{OS}_{ARCH}={hashlib.sha256(tarball).hexdigest()}"
+        out = self.run_check(pin)
+        self.assertIn("ok    gitleaks", out.stdout)
+        self.assertIn("NOT RUN  ruff S:", out.stdout)
+        self.assertEqual(out.returncode, 2)
+        allowed = self.run_check(pin, SEC_CHECK_ALLOW_SKIP="ruff")
+        self.assertEqual(allowed.returncode, 0, allowed.stdout)
+        self.assertIn("sec check: passed WITHOUT: ruff", allowed.stdout)
+
+    def test_a_finding_wins_over_a_tool_that_could_not_run(self):
+        tarball = release_tarball(self.marker, exit_code=1)  # gitleaks reports a leak
+        self.publish(tarball)
+        (self.repo / "app.py").write_text("print('hi')\n")  # and ruff can't run
+        out = self.run_check(f"{OS}_{ARCH}={hashlib.sha256(tarball).hexdigest()}")
+        self.assertIn("FAIL  gitleaks", out.stdout)
+        self.assertEqual(out.returncode, 1)
 
 
 if __name__ == "__main__":
