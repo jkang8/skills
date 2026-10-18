@@ -20,6 +20,13 @@ class DesignLint(unittest.TestCase):
         })
         self.assertTrue(all(h.startswith("src/") for h in hits))
 
+    def test_custom_properties_may_hold_colors_in_any_stylesheet(self):
+        self.assertFalse([h for h in lint(HERE / "fixtures/good", DEFAULT_TOKENS) if "index.css" in h])
+
+    def test_color_literal_outside_a_custom_property_is_flagged(self):
+        hits = lint(HERE / "fixtures/bad", DEFAULT_TOKENS)
+        self.assertIn("src/components/ui/badge.css:1: rgb/hsl color: .badge { color: oklch(0.6 0.2 30); }", hits)
+
     def test_tokens_file_may_hold_colors(self):
         hits = lint(HERE / "fixtures/good", ["nothing-matches"])
         self.assertTrue(any("theme.css" in h and "hex color" in h for h in hits))

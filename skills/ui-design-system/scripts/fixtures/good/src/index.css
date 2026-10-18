@@ -1,0 +1,15 @@
+@import "tailwindcss";
+:root {
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.21 0.006 285.9);
+  --primary: oklch(0.55 0.2 260);
+  --ring: #a1a1aa;
+}
+.dark {
+  --background: oklch(0.14 0.004 285.8);
+}
+@theme inline {
+  --color-background: var(--background);
+  --color-accent: oklch(0.6 0.15 250);
+}
+body { background: var(--background); color: var(--foreground); }

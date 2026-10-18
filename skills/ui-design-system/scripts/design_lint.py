@@ -2,7 +2,8 @@
 """Fail on ui-design-system violations in a frontend tree. Stdlib only.
 
 usage: design_lint.py <dir> [--tokens GLOB ...]
-Tokens files (default: anything under a tokens/ folder, tokens.css, theme.css) may define colors and gradients.
+Tokens files (default: anything under a tokens/ folder, tokens.css, theme.css) may define colors and gradients,
+and so may CSS custom property definitions (`--x: oklch(...)`, including Tailwind v4 `@theme`) in any stylesheet.
 A line containing `design-lint: ignore` is skipped. Exits 1 with `path:line: rule: text` per hit.
 """
 from __future__ import annotations
@@ -31,6 +32,8 @@ RULES = [
 ]
 EMOJI = re.compile("[\U0001F300-\U0001FAFF\U0001F000-\U0001F2FF☀-➿⭐⭕]")
 # UI libraries that only components/ui/ may wrap.
+STYLESHEETS = {".css", ".scss"}
+CUSTOM_PROPERTY = re.compile(r"^\s*--[\w-]+\s*:")
 UI_IMPORT = re.compile(r"""from\s+['"](@radix-ui/|@mui/|@chakra-ui/|@headlessui/|@mantine/|antd\b|react-bootstrap\b|@nextui-org/)""")
 
 
@@ -51,7 +54,8 @@ def lint_file(path: Path, rel: PurePath, tokens: bool) -> list[str]:
         if "design-lint: ignore" in line:
             continue
         where = f"{rel.as_posix()}:{n}"
-        hits += [f"{where}: {rule}: {line.strip()}" for rule, pat, outside in RULES if pat.search(line) and not (outside and tokens)]
+        color_ok = tokens or (path.suffix in STYLESHEETS and bool(CUSTOM_PROPERTY.match(line)))
+        hits += [f"{where}: {rule}: {line.strip()}" for rule, pat, outside in RULES if pat.search(line) and not (outside and color_ok)]
         if jsx and EMOJI.search(line):
             hits.append(f"{where}: emoji: {line.strip()}")
         if not in_ui and UI_IMPORT.search(line):
