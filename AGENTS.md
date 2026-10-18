@@ -5,7 +5,7 @@ Seven agent skills (coding orchestration, architecture, security, review, UI des
 ## Map
 - `skills/<name>/SKILL.md`: one skill per folder, frontmatter `name`, `description`, `license`. Supporting files in `skills/<name>/references/`; checks in `skills/<name>/scripts/` (stdlib Python, tests on `fixtures/`).
 - `overrides/<name>.example.md`: template for a user's local `<name>.local.md`.
-- `scripts/privacy_check.sh`: the privacy gate.
+- `scripts/privacy_check.sh`: the privacy gate; `scripts/privacy_scan.py` is its stdlib scanner.
 - `evals/`: with/without-skill evals (`evals/run.sh <skill>`; see `evals/README.md`).
 
 ## Commands
