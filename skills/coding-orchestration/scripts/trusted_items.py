@@ -2,8 +2,10 @@
 """Reduce GitHub issues or PRs (REST JSON) to what the improver may read. Stdlib only.
 
 usage: trusted_items.py <api-json-file> > items.json
-Anyone can open an issue or PR on a public repo, so only repo members' text reaches the agent: items by
-OWNER, MEMBER or COLLABORATOR keep their body; everything else keeps only number and title, marked untrusted.
+Anyone can open an issue or PR on a public repo, and the agent that reads these can run code, so only repo
+members' items reach it at all: OWNER, MEMBER or COLLABORATOR authors keep their number, title and body;
+everything else is dropped, titles included (a title is text an attacker chooses). The cost is that the
+builder can't see non-members' open PRs, so it may duplicate one; a human reviews every PR anyway.
 Pull requests listed by the issues endpoint are dropped (they come from the pulls endpoint).
 """
 from __future__ import annotations
@@ -21,8 +23,6 @@ def reduce(items: list[dict]) -> list[dict]:
             continue
         if it.get("author_association") in TRUSTED:
             out.append({"number": it["number"], "title": it["title"], "body": it.get("body") or ""})
-        else:
-            out.append({"number": it["number"], "title": it["title"], "untrusted": True})
     return out
 
 

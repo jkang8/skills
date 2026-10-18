@@ -6,9 +6,13 @@
 # Flow: worktree -> haiku summarizes the signals -> opus builds one change from improve.md -> gate. If opus fails
 # the gate twice on its change, one retry with fable; if it quit early or skipped the test, one retry with opus
 # --effort high. A passing change becomes a PR with model and effort in the body. Prints one summary line.
-# Trust: the builder has Bash only for an allowlist (the gate, test runners, local git; IMPROVE_ALLOW_BASH adds
-# comma-separated rules such as "Bash(uv run pytest:*)"). Issue and PR bodies reach it only from OWNER, MEMBER or
-# COLLABORATOR authors; anyone else's items arrive as number and title, marked untrusted.
+# Trust: items (issues, open PRs) reach the builder only from OWNER, MEMBER or COLLABORATOR authors; a non-member's
+# item is dropped whole, title included. The builder's Bash is an allowlist (the gate, test runners, local git;
+# IMPROVE_ALLOW_BASH adds comma-separated rules such as "Bash(uv run pytest:*)"), but that limits mistakes, not a
+# hostile builder: it can write code and run it through the test commands. So its environment is scrubbed of
+# credentials (tokens, keys, ssh agent, gh/git config; IMPROVE_KEEP_ENV adds |-separated names to keep), and
+# IMPROVE_WRAP is a command prefix for a real sandbox, e.g. IMPROVE_WRAP="sandbox-exec -f no-network.sb". Use one
+# on a public repo.
 # Env: IMPROVE_GATE (default `make gate`), IMPROVE_TEXT_CHECK (command run on the PR title, body and commit messages,
 # e.g. a privacy check; required before pushing unless IMPROVE_NO_TEXT_CHECK=1), IMPROVE_HOME (runs and worktrees;
 # outside the repo), IMPROVE_TIME_LIMIT (seconds per attempt), IMPROVE_BASE, IMPROVE_DRY_RUN=1 (no gh, no push, no PR).
@@ -78,9 +82,16 @@ echo "Summarize signals_raw.txt (a repo's weak spots: failures, misses, metrics)
     > "$RUN/signals.md" 2> "$RUN/signals.err")
 [ -s "$RUN/signals.md" ] || { say "no PR: the signals summary failed [logs: $RUN]"; exit 1; }
 
+# The builder can run code it writes, so keep credentials out of its environment: every variable that looks like a
+# secret (except the ones claude itself needs), plus empty gh/git config so no stored login or ssh key is found.
+KEEP="ANTHROPIC_API_KEY|CLAUDE_CODE_OAUTH_TOKEN${IMPROVE_KEEP_ENV:+|$IMPROVE_KEEP_ENV}"
+SCRUB="$(env | cut -d= -f1 | grep -iE 'token|secret|passw|api_?key|credential|^aws_|^ssh_auth_sock$|^gh_|^github_' \
+  | grep -vxE "$KEEP" | sed 's/^/-u /' | tr '\n' ' ')"
+ID_NAME="$(git -C "$REPO" config user.name || echo improver)"; ID_EMAIL="$(git -C "$REPO" config user.email || echo improver@localhost)"
+mkdir -p "$RUN/empty-gh"
 TOOLS="Bash,Read,Edit,Write,Glob,Grep"
 # No blanket Bash: only the gate, test runners and local git run without a prompt (and -p has no prompt, so
-# anything else is denied).
+# anything else is denied). This is not containment: see the Trust note at the top.
 # Comma-separated: rules contain spaces.
 ALLOW="Read,Edit,Write,Glob,Grep,Bash($GATE),Bash(make test),Bash(make gate),Bash(python3 -m unittest:*),Bash(python3 -m pytest:*),Bash(pytest:*),Bash(uv run pytest:*),Bash(pnpm test:*),Bash(git add:*),Bash(git commit:*),Bash(git status:*),Bash(git diff:*),Bash(git log:*),Bash(ls:*)${IMPROVE_ALLOW_BASH:+,$IMPROVE_ALLOW_BASH}"
 DENY="Bash(git push:*),Bash(gh:*),Bash(curl:*),Bash(wget:*)"
@@ -91,7 +102,10 @@ attempt() { # $1 = attempt number, rest = model flags
   sed "s|IMPROVE_RUN_DIR|$A|g" "$HERE/improve.md" > "$A/prompt.md"
   [ -f "$A/previous/retry.md" ] && { echo; cat "$A/previous/retry.md"; } >> "$A/prompt.md"
   echo "$*" > "$A/flags"
-  (cd "$WT" && limit "$LIMIT" \
+  # $WRAP and $SCRUB are word-split on purpose
+  (cd "$WT" && limit "$LIMIT" ${IMPROVE_WRAP:-} env $SCRUB \
+    GH_CONFIG_DIR="$RUN/empty-gh" GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1 GIT_SSH_COMMAND=false GIT_TERMINAL_PROMPT=0 \
+    GIT_AUTHOR_NAME="$ID_NAME" GIT_AUTHOR_EMAIL="$ID_EMAIL" GIT_COMMITTER_NAME="$ID_NAME" GIT_COMMITTER_EMAIL="$ID_EMAIL" \
     claude -p --output-format json --no-session-persistence --restricted --tools "$TOOLS" \
       --permission-mode acceptEdits --allowedTools "$ALLOW" --disallowedTools "$DENY" \
       --add-dir "$A" "$@" < "$A/prompt.md" > "$A/claude.json" 2> "$A/claude.err")
