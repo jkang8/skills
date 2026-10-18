@@ -1,6 +1,6 @@
 # Reviewer prompt
 
-The one reviewer prompt, used by the `review` skill (step 4), which runs only when the user asks. `../scripts/review.sh` copies the text below into `prompt.md` in the review folder, followed by the goal, the raw check output and the checklists inline (twice, a reviewer reported `checks.txt` "missing" from a folder where it was; inline text can't be missing).
+The one reviewer prompt, used by the `review` skill (step 4). `../scripts/review.sh` copies the text below into `prompt.md` in the review folder, followed by the goal, the raw check output and the checklists inline (twice, a reviewer reported `checks.txt` "missing" from a folder where it was; inline text can't be missing).
 
 ```text
 You are reviewing a pull request. You did not write it and have no stake in it passing.

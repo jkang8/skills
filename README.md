@@ -9,7 +9,7 @@ Seven agent skills for Claude Code and Hermes. Each is a folder: `SKILL.md` hold
 | `doc-writing` | writing a README, guide, ADR or AGENTS.md | Diátaxis doc types, writing rules, what goes in vs. stays out, ADR shape, doc-bloat budgets, a review checklist |
 | `architecture` | structuring or reviewing code | deep modules, one-way dependencies, functional core, when to extract or inline a helper, smells, a review checklist |
 | `security` | code touches input, auth, secrets, deps or data | secrets, input validation, auth per object, privacy, supply chain, agent-specific risks; `sec_check.sh` runs ruff S, gitleaks, pip-audit, pnpm audit |
-| `review` | the user asks for a review of a branch (never automatic) | diff scope, routing to the skills that apply, mechanical checks, one fresh-reviewer prompt; `review.sh` does steps 1-3 |
+| `review` | reviewing a branch (the skill says when one runs) | diff scope, routing to the skills that apply, mechanical checks, one fresh-reviewer prompt; `review.sh` does steps 1-3 |
 | `repo-setup` | starting a new repo | a uv + Pydantic + FastAPI + Postgres backend, a pnpm + Vite + React + TS frontend, a shadcn registry layout, Makefile gate, done-when criteria |
 
 The skills reference each other (orchestration briefs pull in the others), so install them together.
