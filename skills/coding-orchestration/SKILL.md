@@ -60,6 +60,14 @@ If `coding-orchestration.local.md` exists in this skill's folder or in `override
 - After a merge, tell in-flight agents to rebase. Conflicts go to the agent owning the path, never to the orchestrator.
 - Clean up: `git worktree remove`, kill the tmux session, delete the claim, mark the row done.
 
+## Improve loop (any repo, orchestrator-owned)
+A scheduled run that makes one gated improvement per run, as a PR: `scripts/improve.sh <repo> [signals-data-path]`. The repo provides three things:
+- `make gate`: tests plus any evals; must pass before a PR opens.
+- `<repo>/scripts/signals`: prints weak spots (failures, misses, metrics). It may take a path to private data passed in by the orchestrator; the repo never hardcodes it.
+- `IMPROVE.md`: what a good foundational fix looks like here, and what's off-limits (frozen evals, privacy rules).
+
+The run: fetch -> new worktree + branch `improve/<stamp>` -> haiku summarizes signals (marking private items) -> opus picks ONE fix and builds it test-first -> gate. Two gate failures with full context -> one retry on fable; quit early or skipped the test -> one retry on opus at high effort. Pass -> PR with model + effort in the body and no private data. Fail -> discard the worktree, one-line note to the user. Never merges. Opt a repo in by adding a cron for it, e.g. weekly: `0 6 * * 1 <skills-checkout>/skills/coding-orchestration/scripts/improve.sh <repo-checkout> [data-path]`.
+
 ## Pitfalls
 - Long sessions live in tmux or the harness's background mode; the orchestrator isn't notified when they end. Say so, and poll on request or by cron.
 - Never two agents in one worktree, not even for a quick fix.
