@@ -49,6 +49,16 @@ Default to locality: keep behavior where it's used, so a reader sees what a thin
 - File names say what's in them. No `misc`, `common`, `core2`, `new_`.
 - Tests mirror source paths. A test that needs heavy mocking means the code mixes I/O and logic: fix the code.
 
+## Agent failure modes
+Coding agents make these mistakes more than people do. Each has the rule that prevents it.
+- **Parallel versions** (a new `compute_total_v2` next to the old one) -> search for the existing implementation before writing one, then extend it.
+- **Blanket try/except** that swallows errors -> catch only the exceptions you can handle, at the boundary that can handle them; let the rest raise.
+- **Re-validating typed data** (checking fields of a Pydantic model or TS type again inside the core) -> validate once at the boundary, then trust the type.
+- **An interface or ABC for one implementation** -> write the concrete class; extract the interface when the second implementation exists.
+- **Leaving the old path behind** (dead functions, unused flags, commented-out code, `_old` files) -> delete the old path in the same change that replaces it.
+- **Mocking everything in tests** -> test the pure core with real data; mock only true I/O edges, or use a real test database.
+- **A new file for one function** -> put it next to its caller or in the module that owns the concept.
+
 ## Smells (fix or justify)
 Speculative generality (options, plugins, base classes with one subclass) · pass-through layers · manager/handler/processor names · boolean parameters that switch behavior · god files over ~500 lines · global mutable state · the same constant in two places · `utils` grab bags · circular imports · DTO-to-DTO mapping chains with no logic · comments explaining what instead of why.
 
@@ -62,5 +72,6 @@ Worked before/after pairs for the rules above (route split, hook + pure componen
 5. Could a new reader change one feature by reading one folder?
 6. Is anything built for a future nobody requested? Remove it.
 7. Did the change reuse existing code instead of adding a parallel version?
+8. None of the agent failure modes above: no blanket except, no re-validation of typed data, no single-implementation interface, no leftover old path, no mock-heavy tests, no one-function files.
 
 Sources: `references/sources.md`.
