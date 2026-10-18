@@ -20,6 +20,13 @@ class DocCheck(unittest.TestCase):
             "docs/decisions/0002-long.md: 16 lines, budget 15",
         ])
 
+    def test_skill_budget(self):
+        with tempfile.TemporaryDirectory() as d:
+            skill = Path(d) / "skills/demo/SKILL.md"
+            skill.parent.mkdir(parents=True)
+            skill.write_text("rule\n" * 121)
+            self.assertEqual(check(Path(d)), ["skills/demo/SKILL.md: 121 lines, budget 120"])
+
     def test_git_paths_skipped_in_worktrees(self):
         with tempfile.TemporaryDirectory() as d:
             root = Path(d)

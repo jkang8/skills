@@ -17,6 +17,7 @@ BUDGETS = {
     "CLAUDE.md": 100,
     "README.md": 150,
     "docs/decisions/*.md": 15,
+    "skills/*/SKILL.md": 120,
 }
 SKIP_DIRS = {"node_modules", ".git", "dist", "build", ".venv", "fixtures"}
 TICK = re.compile(r"`([^`\s]+)`")
