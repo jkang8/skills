@@ -44,8 +44,16 @@ Default to locality: keep behavior where it's used, so a reader sees what a thin
 - Errors: raise typed errors in the core, translate them to HTTP/UI messages in the shell. Never swallow them.
 - Side effects are visible in the signature (it takes a `db`, `client`, `now`).
 
+## Scale to repo size
+| Repo | Shape | Rules that apply |
+|---|---|---|
+| Script or small (under ~2k lines) | Flat; one file per concern | Core rules, helpers vs. locality, smells. No layers, no folders per layer, no boundary configs |
+| Medium (~3+ features) | Feature folders (`notes/{models,service,routes}.py`) | Plus one-way imports inside each feature and `arch_check.py` in the gate |
+| Large (several teams or apps) | Feature folders + layers, shared code in owned modules | Plus import-linter / dependency-cruiser boundaries in the gate |
+
+Don't add layers to a small repo. Move up a tier when the current shape starts to hurt (see evolution rules), not in advance.
+
 ## Layout
-- Group by feature, then by layer inside it, once a repo has more than ~3 features (`notes/{models,service,routes}.py`). Small repos stay flat.
 - File names say what's in them. No `misc`, `common`, `core2`, `new_`.
 - Tests mirror source paths. A test that needs heavy mocking means the code mixes I/O and logic: fix the code.
 
