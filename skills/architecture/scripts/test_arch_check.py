@@ -20,6 +20,16 @@ class ArchCheck(unittest.TestCase):
             "import cycle: web/src/a.ts -> web/src/b.ts -> web/src/a.ts",
         ]))
 
+    def test_ignore_file(self):
+        import shutil
+        import tempfile
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d) / "repo"
+            shutil.copytree(HERE / "fixtures/bad", root)
+            (root / ".archcheckignore").write_text("# deliberate\nsrc/shop/utils.py\n")
+            self.assertFalse(any("utils.py" in h for h in check(root)))
+            self.assertTrue(any("helpers.ts" in h for h in check(root)))
+
     def test_exclude(self):
         hits = check(HERE / "fixtures/bad", ["src/shop/utils.py", "web/src/helpers.ts", "src/shop/big.py"])
         self.assertTrue(all("cycle" in h for h in hits))

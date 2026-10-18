@@ -69,7 +69,7 @@ Coding agents make these mistakes more than people do. Each has the rule that pr
 
 ## Enforced boundaries
 `make gate` must call these, so the rules above fail the build instead of relying on review:
-- `scripts/arch_check.py <dir>`: files over 500 lines, grab-bag file names (utils, helpers, misc, common), import cycles in Python and TS. Prints `arch check: clean`.
+- `scripts/arch_check.py <dir>`: files over 500 lines, grab-bag file names (utils, helpers, misc, common), import cycles in Python and TS. Prints `arch check: clean`. Deliberate exceptions go in `.archcheckignore` at the repo root, one glob per line.
 - Python layers: paste `scripts/templates/importlinter.toml` into pyproject and run `lint-imports` (routes -> services -> domain; domain imports no frameworks).
 - TS: copy `scripts/templates/dependency-cruiser.cjs` and run `depcruise` (no cycles; components don't import the API client).
 `scripts/check_templates.sh` proves both templates catch their violations.

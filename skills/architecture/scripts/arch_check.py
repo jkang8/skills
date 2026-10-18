@@ -2,6 +2,8 @@
 """Fail on architecture smells a script can see: long files, grab-bag file names, import cycles. Stdlib only.
 
 usage: arch_check.py <dir> [--exclude GLOB ...]
+Globs in <dir>/.archcheckignore (one per line, # comments) are excluded too, so deliberate exceptions live
+in the repo instead of in every caller's command line.
 Python cycles come from `import` statements (imports under `if TYPE_CHECKING:` don't count); TS/JS
 cycles come from relative `import ... from "./x"` (type-only imports don't count).
 Exits 1 with `path: problem` per hit.
@@ -116,8 +118,15 @@ def cycles(graph: dict[str, set[str]]) -> list[list[str]]:
     return out
 
 
+def ignore_file(root: Path) -> list[str]:
+    f = root / ".archcheckignore"
+    if not f.is_file():
+        return []
+    return [g.strip() for g in f.read_text(encoding="utf-8").splitlines() if g.strip() and not g.startswith("#")]
+
+
 def check(root: Path, exclude: list[str] | None = None) -> list[str]:
-    files = code_files(root, exclude or [])
+    files = code_files(root, (exclude or []) + ignore_file(root))
     hits = []
     for f in files:
         rel = f.relative_to(root)

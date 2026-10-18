@@ -66,7 +66,8 @@ for s in $skills; do case $s in
   architecture) run arch_check python3 "$SKILLS/architecture/scripts/arch_check.py" . ;;
   ui-design-system) run design_lint python3 "$SKILLS/ui-design-system/scripts/design_lint.py" . ;;
   doc-writing) run doc_check python3 "$SKILLS/doc-writing/scripts/doc_check.py" . ;;
-  repo-setup) run stack_check python3 "$SKILLS/repo-setup/scripts/stack_check.py" . ;;
+  repo-setup) if [ -d "$WT/api" ] || [ -d "$WT/web" ]; then run stack_check python3 "$SKILLS/repo-setup/scripts/stack_check.py" .
+              else echo "skip  stack_check (no api/ or web/: not an app scaffold)"; printf '## stack_check\nskipped: not an app scaffold\n\n' >> "$OUT/checks.txt"; fi ;;
   security) [ "${REVIEW_SKIP_SEC:-}" = 1 ] && echo "skip  sec_check (REVIEW_SKIP_SEC=1)" || run sec_check sh "$SKILLS/security/scripts/sec_check.sh" . ;;
 esac; done
 
