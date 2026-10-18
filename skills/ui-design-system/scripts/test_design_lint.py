@@ -20,6 +20,18 @@ class DesignLint(unittest.TestCase):
         })
         self.assertTrue(all(h.startswith("src/") for h in hits))
 
+    def test_src_index_css_is_a_tokens_file(self):
+        # shadcn's token stylesheet: oklch() custom properties and a hex ring color are fine here
+        self.assertEqual([h for h in lint(HERE / "fixtures/good", DEFAULT_TOKENS) if "index.css" in h], [])
+
+    def test_custom_property_in_a_component_stylesheet_is_flagged(self):
+        hits = lint(HERE / "fixtures/bad", DEFAULT_TOKENS)
+        self.assertIn("src/components/brand.css:2: rgb/hsl color: --brand: oklch(0.6 0.2 30);", hits)
+
+    def test_index_css_below_src_root_is_not_a_tokens_file(self):
+        hits = lint(HERE / "fixtures/bad", DEFAULT_TOKENS)
+        self.assertIn("src/components/index.css:2: hex color: --accent: #7c3aed;", hits)
+
     def test_tokens_file_may_hold_colors(self):
         hits = lint(HERE / "fixtures/good", ["nothing-matches"])
         self.assertTrue(any("theme.css" in h and "hex color" in h for h in hits))
