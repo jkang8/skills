@@ -14,7 +14,7 @@
 - **Banned:** purple/blue gradients, glassmorphism, sparkle/✨ icons, emoji, "AI-powered" badges, robot mascots, marketing hero sections, lorem ipsum, stock illustrations, shadows on everything, centered-everything layouts, rounded-3xl cards everywhere.
 - Copy short and specific ("3 invoices overdue", not "Unlock hidden revenue").
 - AI-native features must earn their place (per-item plain-English explanation, ⌘K command bar, a visible run/step view) and work offline with a deterministic fallback so a live demo can't break.
-- Gate: the agent screenshots every screen in both themes and reviews them against the banned list before calling it done; the orchestrator re-checks the screenshots before reporting.
+- Gate: the agent screenshots every screen in both themes and reviews them against the banned list before calling it done.
 
 The full rules are in the `ui-design-system` skill; this is the short version for briefs.
 
