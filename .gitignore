@@ -1,0 +1,5 @@
+# Personal specifics stay local (see README "Overrides")
+overrides/*.local.md
+skills/*/*.local.md
+.privacy.local
+.DS_Store
