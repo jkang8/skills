@@ -52,7 +52,7 @@ j, t, r = (open(p).read() for p in sys.argv[1:])
 print(j.replace("TASK_PROMPT", t.strip()).replace("RUBRIC", r.strip()))
 PY
   (cd "$b" && claude -p "$(cat .judge-prompt)" --model "$JUDGE" --disable-slash-commands \
-    --allowedTools "Read,Glob,Grep" > "$d/judge.txt" 2>&1) || true
+    --tools "Read,Glob,Grep" --disallowedTools "Edit,Write,NotebookEdit,Bash" > "$d/judge.txt" 2>&1) || true  # the judge only reads; --tools, not just --allowedTools, makes that true
   score="$(sed -n 's/^SCORE: *\([0-9]*\/[0-9]*\).*/\1/p' "$d/judge.txt" | tail -1)"
   echo "$1 $2 $3 $hits ${score:-?}" > "$d/result.txt"
 }
