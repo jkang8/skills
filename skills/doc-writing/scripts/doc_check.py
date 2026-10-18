@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fail on doc-writing violations in a repo: line budgets and stale backticked paths. Stdlib only.
+"""Fail on doc-writing violations in a repo: line budgets, skill description length and stale backticked paths. Stdlib only.
 
 usage: doc_check.py <repo>
 CLAUDE.md must contain only `@AGENTS.md` (AGENTS.md is the real agent context file).
@@ -20,6 +20,8 @@ BUDGETS = {
     "docs/decisions/*.md": 15,
     "skills/*/SKILL.md": 120,
 }
+DESCRIPTION_MAX = 60  # skill descriptions load into every session, so each is a short trigger
+DESCRIPTION = re.compile(r'^description:\s*"?(.*?)"?\s*$', re.M)
 SKIP_DIRS = {"node_modules", ".git", "dist", "build", ".venv", "fixtures"}
 TICK = re.compile(r"`([^`\s]+)`")
 FENCE = re.compile(r"^\s*(```|~~~)")
@@ -64,6 +66,11 @@ def check(root: Path) -> list[str]:
         limit = budget(rel)
         if limit is not None and len(lines) > limit:
             hits.append(f"{rel.as_posix()}: {len(lines)} lines, budget {limit}")
+        if rel.match("skills/*/SKILL.md") and lines[:1] == ["---"]:
+            front = "\n".join(lines[1:lines.index("---", 1)] if "---" in lines[1:] else [])
+            m = DESCRIPTION.search(front)
+            if m and len(m.group(1)) > DESCRIPTION_MAX:
+                hits.append(f"{rel.as_posix()}: description is {len(m.group(1))} chars, max {DESCRIPTION_MAX}")
         fenced = False
         for n, line in enumerate(lines, 1):
             if FENCE.match(line):

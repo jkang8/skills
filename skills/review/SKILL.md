@@ -1,6 +1,6 @@
 ---
 name: review
-description: "Use when the user asks for a branch review: run every relevant skill."
+description: "Use when asked to review a branch: run every relevant skill."
 version: 1.0.0
 license: MIT
 metadata:
