@@ -6,6 +6,7 @@ Tokens files may define colors and gradients, in any form (`--x: oklch(...)`, Ta
 anything under a tokens/ folder, tokens.css, theme.css, and the shadcn token stylesheets at the app root
 (src/index.css, src/globals.css, app/globals.css). Components and pages never may, custom property or not.
 Pass --tokens GLOB (repeatable) to name a different tokens file; it replaces the defaults.
+Folders named node_modules, dist, build, coverage, public and fixtures (test data) below <dir> are skipped.
 A line containing `design-lint: ignore` is skipped. Exits 1 with `path:line: rule: text` per hit.
 """
 from __future__ import annotations
@@ -16,7 +17,9 @@ import sys
 from pathlib import Path, PurePath
 
 EXTS = {".ts", ".tsx", ".js", ".jsx", ".css", ".scss", ".html", ".vue", ".svelte"}
-SKIP_DIRS = {"node_modules", "dist", "build", ".git", ".next", "coverage", "public"}
+# `fixtures` holds a repo's test data, deliberately bad examples included; arch_check and doc_check skip it too.
+# Only folders below the linted root are skipped, so linting a fixtures folder itself still works.
+SKIP_DIRS = {"node_modules", "dist", "build", ".git", ".next", "coverage", "public", "fixtures", "__fixtures__"}
 # Anchored to the app root so `src/components/index.css` is not a tokens file.
 DEFAULT_TOKENS = [
     "tokens/*", "tokens/**/*", "tokens.css", "theme.css",

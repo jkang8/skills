@@ -32,6 +32,25 @@ class DesignLint(unittest.TestCase):
         hits = lint(HERE / "fixtures/bad", DEFAULT_TOKENS)
         self.assertIn("src/components/index.css:2: hex color: --accent: #7c3aed;", hits)
 
+    def test_fixtures_folders_below_the_root_are_skipped(self):
+        import shutil
+        import tempfile
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            (root / "src/components/ui").mkdir(parents=True)
+            (root / "src/components/ui/ok.tsx").write_text("export const Ok = () => <p>ok</p>;\n")
+            shutil.copytree(HERE / "fixtures/bad", root / "tests/fixtures/bad")  # deliberate bad test data
+            self.assertEqual(lint(root, DEFAULT_TOKENS), [])
+            self.assertTrue(lint(root / "tests/fixtures/bad", DEFAULT_TOKENS))  # linting the folder itself still reports
+
+    def test_a_real_violation_outside_fixtures_is_still_flagged(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            (root / "src/components").mkdir(parents=True)
+            (root / "src/components/x.tsx").write_text('export const X = () => <p style={{ color: "#7c3aed" }}>x</p>;\n')
+            self.assertEqual(len(lint(root, DEFAULT_TOKENS)), 1)
+
     def test_tokens_file_may_hold_colors(self):
         hits = lint(HERE / "fixtures/good", ["nothing-matches"])
         self.assertTrue(any("theme.css" in h and "hex color" in h for h in hits))
