@@ -43,10 +43,11 @@ def check(root: Path) -> list[str]:
     if not gitignored(root, ".env"):
         out.append(".env is not in .gitignore")
     need("README.md")
-    need("CLAUDE.md")
-    agents = root / "AGENTS.md"
-    if not agents.is_symlink() or agents.resolve() != (root / "CLAUDE.md").resolve():
-        out.append("AGENTS.md is not a symlink to CLAUDE.md")
+    agents, claude = root / "AGENTS.md", root / "CLAUDE.md"
+    if not agents.is_file() or agents.is_symlink():
+        out.append("AGENTS.md is missing or a symlink (it is the real agent context file)")
+    if not claude.is_file() or claude.is_symlink() or claude.read_text(encoding="utf-8").strip() != "@AGENTS.md":
+        out.append("CLAUDE.md must contain only `@AGENTS.md`")
 
     api, web = root / "api", root / "web"
     if not api.is_dir() and not web.is_dir():

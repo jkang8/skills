@@ -1,0 +1,1 @@
+You are the orchestrator for this repo and will delegate the coding to other agent sessions; don't edit the code yourself. The feature: add `--format json` output, add median and percentile columns, and add a `--columns` filter. Write the plan as files: a task board and one brief per agent session, in a folder `plan/` here (pretend it is outside the repo). Don't write any code.

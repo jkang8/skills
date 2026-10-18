@@ -1,0 +1,1 @@
+You are the orchestrator. Three agent sessions are working on this repo. Their status files say: task A "PR opened, gate passed"; task B "blocked: src/csvstats/cli.py held by A"; task C "started" (12 hours ago, nothing since). The user asks "how's it going?". Write `plan/answer.md` with your reply to the user and `plan/next-steps.md` with what you do next. Don't write any code.

@@ -1,0 +1,1 @@
+Scaffold a new HTTP API in this empty folder for a bookmarks service (save a URL with tags, list and search by tag), persisted in a database. No frontend. Write the files only (no installs, no servers). You may run `python3` and `ls`.

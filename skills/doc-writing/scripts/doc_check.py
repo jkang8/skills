@@ -2,6 +2,7 @@
 """Fail on doc-writing violations in a repo: line budgets and stale backticked paths. Stdlib only.
 
 usage: doc_check.py <repo>
+CLAUDE.md must contain only `@AGENTS.md` (AGENTS.md is the real agent context file).
 A backticked path is checked when its first segment exists next to the doc or at the repo root, so
 `src/app.py` is checked in a repo with src/, while `web/src/api/` in a repo without web/ is taken as
 an example. Exits 1 with `path[:line]: problem` per hit.
@@ -14,7 +15,7 @@ from pathlib import Path, PurePath
 
 # Pattern (matched from the right, like PurePath.match) -> max lines. First match wins.
 BUDGETS = {
-    "CLAUDE.md": 100,
+    "AGENTS.md": 100,
     "README.md": 150,
     "docs/decisions/*.md": 15,
     "skills/*/SKILL.md": 120,
@@ -49,6 +50,14 @@ def stale(tok: str, doc: Path, root: Path) -> bool:
 
 def check(root: Path) -> list[str]:
     hits = []
+    for claude in sorted(root.rglob("CLAUDE.md")):
+        rel = claude.relative_to(root)
+        if SKIP_DIRS & set(rel.parts):
+            continue
+        if claude.is_symlink() or claude.read_text(encoding="utf-8").strip() != "@AGENTS.md":
+            hits.append(f"{rel.as_posix()}: must contain only `@AGENTS.md`")
+        if not (claude.parent / "AGENTS.md").is_file() or (claude.parent / "AGENTS.md").is_symlink():
+            hits.append(f"{rel.parent.as_posix()}/AGENTS.md: missing or a symlink; it must be the real file")
     for doc in docs(root):
         rel = doc.relative_to(root)
         lines = doc.read_text(encoding="utf-8").splitlines()

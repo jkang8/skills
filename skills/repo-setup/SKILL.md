@@ -40,7 +40,7 @@ One private repo `<org>/ui` holds the restyled components as a shadcn registry `
 - `.env.example` with every variable and no values; `.env` gitignored.
 - **CI is optional.** Ask the user if it isn't clear. No CI for prototypes, demos and solo experiments; add it with collaborators, PR-opening agents or a deployment. With CI: `.github/workflows/ci.yml` runs `make gate` on PRs and `main` requires it. Without: agents run `make gate` and paste the output in the PR. Either way, the user merges.
 - All check logic lives in the Makefile, never the workflow, so adding CI later is one file plus branch protection.
-- `CLAUDE.md` (with `AGENTS.md` symlinked) and a README, per doc-writing.
+- `AGENTS.md` (the agent context file), `CLAUDE.md` containing only `@AGENTS.md`, and a README, per doc-writing.
 - Private repo unless the user says otherwise. Commit with the user's GitHub noreply address (`<user>@users.noreply.github.com`, from the override) so no personal email lands in history.
 
 ## Layout
@@ -50,7 +50,7 @@ web/   src/{api,routes,components/ui,lib}/   components.json (registry @<your-re
 
 # separate repo <org>/ui (shadcn registry):
 registry/{tokens,primitives,composites}/<component>/  registry.json  public/r/  catalog/
-compose.yaml  Makefile  .env.example  CLAUDE.md  README.md  [.github/workflows/ci.yml if CI]
+compose.yaml  Makefile  .env.example  AGENTS.md  CLAUDE.md  README.md  [.github/workflows/ci.yml if CI]
 ```
 
 ## Done when

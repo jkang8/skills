@@ -31,7 +31,7 @@ If `coding-orchestration.local.md` exists in this skill's folder or in `override
 - Write a brief under `<agents-dir>/<repo>/` (outside the repo): goal, stack, constraints, ordered tasks, gate command, what to report.
 - Send it as "Read <brief> and carry it out; flag anything that looks wrong before you build, then keep going". Relay the agent's flags to the user and its fixes into the plan.
 - The orchestrator writes no code, scaffolding included. If it already edited files, list them in the brief and stay out of the folder.
-- New repos: `gh repo create <owner>/<name> --private --source . --push`; seed `docs/` with the source material and a `CLAUDE.md` of ground rules (scope, data rules, employer-overlap limits).
+- New repos: `gh repo create <owner>/<name> --private --source . --push`; seed `docs/` with the source material and an `AGENTS.md` of ground rules (`CLAUDE.md` = `@AGENTS.md`) (scope, data rules, employer-overlap limits).
 - Paste the relevant parts of `references/build-defaults.md` into build briefs.
 - When the user asks "how's X": read the pane/status, check the gate and screenshots, answer short with links.
 

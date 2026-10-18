@@ -1,1 +1,1 @@
-# demo
+@AGENTS.md

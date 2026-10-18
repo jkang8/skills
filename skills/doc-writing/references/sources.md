@@ -6,4 +6,4 @@ Not re-read for this version. They were cited by the skill this one was generali
 - [Diátaxis](https://diataxis.fr).
 - [Google developer documentation style guide highlights](https://developers.google.com/style/highlights).
 - [Write the Docs: Docs as Code](https://www.writethedocs.org/guide/docs-as-code/).
-- Agent context files: Anthropic's Claude Code docs on [memory and CLAUDE.md](https://docs.anthropic.com/en/docs/claude-code/memory), plus what has held up in practice (general knowledge).
+- Agent context files: Anthropic's Claude Code docs on [memory and CLAUDE.md](https://docs.anthropic.com/en/docs/claude-code/memory), plus what has held up in practice (general knowledge). AGENTS.md as the shared file: [agents.md](https://agents.md) (known).

@@ -1,0 +1,1 @@
+Write the agent context file for this repository, for coding agents that will work on it. Convention here: `AGENTS.md` is the real file, and `CLAUDE.md` contains only the line `@AGENTS.md`. You may run `python3` to try things.

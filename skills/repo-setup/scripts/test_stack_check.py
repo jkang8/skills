@@ -18,7 +18,7 @@ class StackCheck(unittest.TestCase):
             "missing .env.example",
             ".env is not in .gitignore",
             "missing README.md",
-            "AGENTS.md is not a symlink to CLAUDE.md",
+            "CLAUDE.md must contain only `@AGENTS.md`",
             "missing api/uv.lock",
             "missing api/src",
             "missing api/tests",

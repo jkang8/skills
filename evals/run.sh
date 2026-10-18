@@ -1,0 +1,88 @@
+#!/bin/sh
+# Run a skill's eval tasks headless, without and with the skill, and print a comparison table.
+#   evals/run.sh <skill> [-n runs-per-arm] [-m agent-model] [-j judge-model]
+# Both arms run with all skills disabled; the "with" arm gets SKILL.md + references/ appended to the
+# system prompt. Work happens in a temp dir outside any repo, so no CLAUDE.md above it leaks in.
+# Raw outputs stay in that temp dir; one summary line per task and arm goes to evals/results.log.
+set -eu
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+SKILL="${1:?usage: evals/run.sh <skill> [-n runs] [-m model] [-j judge-model]}"; shift
+N=1 MODEL=opus JUDGE=opus
+while getopts n:m:j: o; do case $o in n) N=$OPTARG;; m) MODEL=$OPTARG;; j) JUDGE=$OPTARG;; *) exit 2;; esac; done
+TASKS="$ROOT/evals/tasks/$SKILL"
+[ -d "$TASKS" ] || { echo "no tasks for $SKILL"; exit 2; }
+RUN="$(mktemp -d)/$SKILL"; mkdir -p "$RUN"
+echo "raw outputs: $RUN"
+
+{ cat "$ROOT/skills/$SKILL/SKILL.md"
+  for f in "$ROOT/skills/$SKILL"/references/*.md; do
+    [ -f "$f" ] && printf '\n\n---\n# references/%s\n\n' "$(basename "$f")" && cat "$f"
+  done; } > "$RUN/skill.md"
+
+check() { # $1 work dir, $2 output file -> number of check-script hits, or "-" for skills without one
+  case $SKILL in ui-design-system|doc-writing|repo-setup) ;; *) echo "-"; return 0 ;; esac
+  case $SKILL in
+    ui-design-system) python3 "$ROOT/skills/ui-design-system/scripts/design_lint.py" "$1/web" ;;
+    doc-writing) python3 "$ROOT/skills/doc-writing/scripts/doc_check.py" "$1" ;;
+    repo-setup) python3 "$ROOT/skills/repo-setup/scripts/stack_check.py" "$1" ;;
+  esac > "$2" 2>&1 || true
+  grep -cvE 'clean$' "$2" || true
+}
+
+run_one() { # $1 task, $2 arm, $3 run index
+  d="$RUN/$1/$2-$3"; w="$d/work"; mkdir -p "$w"
+  cp -R "$ROOT/evals/fixtures/$(cat "$TASKS/$1/fixture")/." "$w/"
+  git -C "$w" init -q
+  extra=""; [ "$2" = with ] && extra="--append-system-prompt-file $RUN/skill.md"
+  # shellcheck disable=SC2086
+  (cd "$w" && claude -p "$(cat "$TASKS/$1/prompt.md")" --model "$MODEL" --disable-slash-commands \
+    --permission-mode acceptEdits --allowedTools "Read,Write,Edit,Glob,Grep,Bash(python3:*),Bash(ls:*)" \
+    $extra > "$d/agent.txt" 2>&1) || true
+  rm -rf "$w/.git"
+  hits="$(check "$w" "$d/check.txt")"
+  # Judge blind: a copy whose path doesn't name the arm.
+  b="$(mktemp -d "$RUN/blind.XXXXXX")"; cp -R "$w/." "$b/"
+  python3 - "$ROOT/evals/judge.md" "$TASKS/$1/prompt.md" "$TASKS/rubric.md" > "$b/.judge-prompt" <<'PY'
+import sys
+j, t, r = (open(p).read() for p in sys.argv[1:])
+print(j.replace("TASK_PROMPT", t.strip()).replace("RUBRIC", r.strip()))
+PY
+  (cd "$b" && claude -p "$(cat .judge-prompt)" --model "$JUDGE" --disable-slash-commands \
+    --allowedTools "Read,Glob,Grep" > "$d/judge.txt" 2>&1) || true
+  score="$(sed -n 's/^SCORE: *\([0-9]*\/[0-9]*\).*/\1/p' "$d/judge.txt" | tail -1)"
+  echo "$1 $2 $3 $hits ${score:-?}" > "$d/result.txt"
+}
+
+for t in "$TASKS"/*/; do
+  t="$(basename "$t")"
+  for arm in without with; do
+    i=1; while [ "$i" -le "$N" ]; do run_one "$t" "$arm" "$i" & i=$((i + 1)); done
+  done
+done
+wait
+
+# Table: per task and arm, mean check hits and mean judge score over the runs.
+cat "$RUN"/*/*/result.txt | python3 -c '
+import sys, collections, datetime
+rows = collections.defaultdict(list)
+for line in sys.stdin:
+    task, arm, _, hits, score = line.split()
+    rows[(task, arm)].append((hits, score))
+def mean(xs):
+    xs = [x for x in xs if x not in ("-", "?")]
+    return f"{sum(map(float, xs)) / len(xs):.1f}" if xs else "-"
+def agg(v):
+    s = [x.split("/") for _, x in v if x != "?"]
+    pct = mean([str(100 * int(a) / int(b)) for a, b in s])
+    return mean([h for h, _ in v]), (f"{mean([a for a, _ in s])}/{s[0][1]}({pct}%)" if s else "?")
+skill, model, judge, log = sys.argv[1:5]
+print(f"| task | check hits without | check hits with | judge without | judge with |")
+print("|---|---|---|---|---|")
+day = datetime.date.today().isoformat()
+with open(log, "a") as f:
+    for task in sorted({t for t, _ in rows}):
+        (hw, jw), (hh, jh) = agg(rows[(task, "without")]), agg(rows[(task, "with")])
+        print(f"| {task} | {hw} | {hh} | {jw} | {jh} |")
+        n = len(rows[(task, "with")])
+        f.write(f"{day} {skill} {task} model={model} judge={judge} n={n} hits_without={hw} hits_with={hh} judge_without={jw} judge_with={jh}\n")
+' "$SKILL" "$MODEL" "$JUDGE" "$ROOT/evals/results.log"

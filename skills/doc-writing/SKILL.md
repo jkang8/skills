@@ -12,7 +12,7 @@ metadata:
 # Doc writing
 
 ## When to use
-Any doc in a repo you own: README, guides, API reference, architecture notes, ADRs, and the agent context files (CLAUDE.md / AGENTS.md). Put these rules in the coding agent's brief (see coding-orchestration). Reference point: Stripe's docs (why they work: `references/why.md`).
+Any doc in a repo you own: README, guides, API reference, architecture notes, ADRs, and the agent context file (AGENTS.md, with CLAUDE.md as a one-line pointer). Put these rules in the coding agent's brief (see coding-orchestration). Reference point: Stripe's docs (why they work: `references/why.md`).
 
 ## Local overrides
 If `doc-writing.local.md` exists in this skill's folder or in `overrides/` at the root of the checkout this skill came from (resolve symlinks to find it), read it first. Its values fill the `<placeholders>` here; its rules add to these and win on conflict.
@@ -52,17 +52,18 @@ The in/out test for every line: would a capable agent or new engineer, reading o
 - Only decisions an agent or newcomer would otherwise undo.
 - A changed decision gets a new ADR; mark the old one superseded in its first line.
 
-## The agent context file (CLAUDE.md, AGENTS.md symlinked to it)
+## The agent context file (AGENTS.md)
+- AGENTS.md is the real file. CLAUDE.md contains only the line `@AGENTS.md`, so Claude Code imports it and other harnesses read AGENTS.md directly. No symlinks.
 - Under ~100 lines; it loads into every session.
 - In order: purpose paragraph; repo map; commands (setup, run, test, lint, gate); conventions that differ from defaults; hard rules and traps; pointers to deeper docs.
 - Point, don't paste ("rounding rules: see `billing/rounding.py`").
 - Only what an agent would get wrong untold. Skip what a linter, formatter, type checker or test enforces.
-- Per-directory CLAUDE.md only where a subtree has its own rules.
+- Per-directory AGENTS.md (plus its one-line CLAUDE.md) only where a subtree has its own rules.
 
 **Comments:** one line on why, a constraint or a non-obvious choice. Never narrate the next line.
 
 ## Budgets and bloat
-- CLAUDE.md ≤100 lines, README ≤150, ADR ≤15, SKILL.md ≤120, how-to ≤1 screen of steps. Over budget fails the check; cut, don't raise the cap.
+- AGENTS.md ≤100 lines, README ≤150, ADR ≤15, SKILL.md ≤120, how-to ≤1 screen of steps. Over budget fails the check; cut, don't raise the cap.
 - Edit, don't append: rewrite the line a change supersedes.
 - Net-zero by default: a PR that grows docs says what it replaced or why growth is needed.
 - One home per fact; delete duplicates and link.
@@ -80,7 +81,7 @@ The in/out test for every line: would a capable agent or new engineer, reading o
 2. The first sentence states the outcome. Steps are numbered and each one is verifiable.
 3. Every command and sample was run, and its output is shown.
 4. Nothing restates what the code already says. Why, where, invariants and commands are present.
-5. CLAUDE.md is under ~100 lines and points to detail instead of containing it.
+5. AGENTS.md is under ~100 lines and points to detail instead of containing it; CLAUDE.md is only `@AGENTS.md`.
 6. ADRs follow the fixed shape, read as the current rule, and contain no story of how it was decided.
 7. Every line passes the in/out test; nothing from the stays-out list made it in.
 8. Docs are within budget, and any growth in the diff is justified in the PR.

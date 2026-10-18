@@ -15,7 +15,8 @@ class DocCheck(unittest.TestCase):
 
     def test_bad_repo(self):
         self.assertEqual(sorted(check(HERE / "fixtures/bad")), [
-            "CLAUDE.md: 101 lines, budget 100",
+            "AGENTS.md: 101 lines, budget 100",
+            "CLAUDE.md: must contain only `@AGENTS.md`",
             "README.md:3: stale path `src/gone.py`",
             "docs/decisions/0002-long.md: 16 lines, budget 15",
         ])
@@ -31,7 +32,7 @@ class DocCheck(unittest.TestCase):
         with tempfile.TemporaryDirectory() as d:
             root = Path(d)
             (root / ".git").write_text("gitdir: elsewhere\n")  # how a worktree looks
-            self.assertFalse(stale(".git/hooks/pre-commit", root / "CLAUDE.md", root))
+            self.assertFalse(stale(".git/hooks/pre-commit", root / "AGENTS.md", root))
 
 
 if __name__ == "__main__":

@@ -1,0 +1,1 @@
+Scaffold a new internal dashboard project in this empty folder: a frontend that reads from a small Python API, which reads from a database of support tickets. Write the files only (no installs, no servers). You may run `python3` and `ls`.
