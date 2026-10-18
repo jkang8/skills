@@ -79,7 +79,7 @@ Miss diagnosis: had context and still wrong -> stronger model. Skipped files/tes
 ## 4. Integrate
 
 - Each agent: test first, implement, rebase on `origin/main`, run the gate, open a PR, write status `in-review`.
-- The orchestrator reviews each PR's diff against its owned paths (out-of-scope edits -> send back), checks gate output and CI, then reports to the user with links. Merge order follows the board's dependencies.
+- The orchestrator checks each PR's diff against its owned paths (out-of-scope edits -> send back), checks gate output and CI, then starts an independent reviewer run (`references/review.md`) and relays its verdict. It reports to the user with links once the reviewer passes. Merge order follows the board's dependencies.
 - After a merge, tell the in-flight agents to rebase; conflicts go back to the agent that owns the conflicting path, never resolved by the orchestrator.
 - Clean up: `git worktree remove`, kill the tmux session, delete the claim, mark the board row done.
 
