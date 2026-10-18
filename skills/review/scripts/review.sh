@@ -77,7 +77,18 @@ checklist() { # the review checklist section of a skill (repo-setup's is "Done w
 }
 { echo "# Checklists for this diff"; echo; echo "Chosen:$why"; echo; echo "Not applicable:$skipped"
   for s in $skills; do echo; echo "# $s"; checklist "$s"; done; } > "$OUT/checklists.md"
-awk '/^```text/{f=1; next} f && /^```/{exit} f' "$SKILLS/review/references/reviewer-prompt.md" > "$OUT/prompt.md"
+# The goal, check output and checklists go inline in the prompt (capped; the files stay in the folder too): a reviewer
+# that has to find them as files has been seen to report them missing.
+MAX="${REVIEW_MAX_INLINE:-200000}"
+inline() { # $1 title, $2 file
+  printf '\n\n=== %s ===\n' "$1"
+  if [ "$(wc -c < "$2")" -gt "$MAX" ]; then
+    head -c "$MAX" "$2"; printf '\n[truncated at %s bytes; the full file is %s in the review folder]\n' "$MAX" "$(basename "$2")"
+  else cat "$2"; fi
+}
+{ awk '/^```text/{f=1; next} f && /^```/{exit} f' "$SKILLS/review/references/reviewer-prompt.md"
+  inline "goal.md" "$OUT/goal.md"; inline "checks.txt" "$OUT/checks.txt"; inline "checklists.md" "$OUT/checklists.md"
+} > "$OUT/prompt.md"
 
 cat "$OUT/prompt.md"
 cat <<EOF

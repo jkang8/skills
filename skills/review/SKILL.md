@@ -35,7 +35,7 @@ If `review.local.md` exists in this skill's folder or in `overrides/` at the roo
 List the chosen skills and why at the top of the verdict. Skip the rest explicitly ("no UI changed: ui-design-system n/a").
 
 ## 3. Mechanical checks first
-Run the repo's `make gate`, then the scripts of the chosen skills: `arch_check.py`, `design_lint.py`, `doc_check.py`, `stack_check.py`, `sec_check.sh`. Use the repo's vendored copies if it has them, otherwise this skills checkout. `review.sh` captures the raw output of the gate and every check in `checks.txt`; that file, never a pasted summary, is what the reviewer gets. A failing check is a blocking finding; the reviewer doesn't re-argue it.
+Run the repo's `make gate`, then the scripts of the chosen skills: `arch_check.py`, `design_lint.py`, `doc_check.py`, `stack_check.py`, `sec_check.sh`. Use the repo's vendored copies if it has them, otherwise this skills checkout. `review.sh` captures the raw output of the gate and every check in `checks.txt`; that output, never a pasted summary, is what the reviewer gets, and `review.sh` puts it (with the goal and the checklists) inline in the prompt so the reviewer doesn't have to find a file. A failing check is a blocking finding; the reviewer doesn't re-argue it.
 
 ## 4. Judgment pass: a fresh reviewer
 Start a new headless session in a read-only checkout of the branch: default tier (opus), high effort. Give it ONLY the PR goal and owned paths, the diff, the check output, screenshots if UI, and the checklists of the chosen skills. Not the author's transcript and not the orchestrator's opinion. The exact prompt is `references/reviewer-prompt.md`; `review.sh` fills it in and prints the launch command:
