@@ -1,0 +1,6 @@
+2026-10-18 doc-writing adr model=opus judge=opus n=1 hits_without=1.0 hits_with=1.0 judge_without=6.0/10(60.0%) judge_with=9.0/10(90.0%)
+2026-10-18 doc-writing agent-context model=opus judge=opus n=1 hits_without=0.0 hits_with=0.0 judge_without=10.0/10(100.0%) judge_with=9.0/10(90.0%)
+2026-10-18 doc-writing readme model=opus judge=opus n=1 hits_without=0.0 hits_with=0.0 judge_without=10.0/10(100.0%) judge_with=10.0/10(100.0%)
+2026-10-18 ui-design-system ai-ticket-summary model=opus judge=opus n=1 hits_without=0.0 hits_with=0.0 judge_without=4.0/12(33.3%) judge_with=11.0/12(91.7%)
+2026-10-18 ui-design-system metrics-dashboard model=opus judge=opus n=1 hits_without=0.0 hits_with=0.0 judge_without=10.0/12(83.3%) judge_with=12.0/12(100.0%)
+2026-10-18 ui-design-system settings-page model=opus judge=opus n=1 hits_without=0.0 hits_with=0.0 judge_without=7.0/12(58.3%) judge_with=11.0/12(91.7%)
