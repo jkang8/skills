@@ -74,6 +74,12 @@ Coding agents make these mistakes more than people do. Each has the rule that pr
 - TS: copy `scripts/templates/dependency-cruiser.cjs` and run `depcruise` (no cycles; components don't import the API client).
 `scripts/check_templates.sh` proves both templates catch their violations.
 
+## Evolution rules
+- Tidy first, in its own commit: rename, move or extract with no behavior change, then make the behavior change in the next commit.
+- No unrelated refactors in a feature PR. A tidy the feature needs is fine; anything else is its own PR.
+- Restructure when the third feature makes the current shape hurt (rule of three applies to structure too), not before.
+- Delete the old path in the same PR that adds the new one. No `_v2`, no flag kept "just in case".
+
 ## Smells (fix or justify)
 Speculative generality (options, plugins, base classes with one subclass) · pass-through layers · manager/handler/processor names · boolean parameters that switch behavior · god files over ~500 lines · global mutable state · the same constant in two places · `utils` grab bags · circular imports · DTO-to-DTO mapping chains with no logic · comments explaining what instead of why.
 
