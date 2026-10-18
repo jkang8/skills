@@ -29,7 +29,7 @@ Default to locality: keep behavior where it's used, so a reader sees what a thin
 - **Extract a helper when** it's used in 3+ places with the same meaning (rule of three), OR it names a real domain concept (`business_days_between`), OR it isolates something hard (date math, money, parsing) worth its own tests.
 - **Don't extract when** it's used once, the name just restates the body (`get_user_by_id_from_db`), or callers would need flags to vary it. Two similar blocks that may diverge stay duplicated: duplication is cheaper than the wrong abstraction (Metz).
 - **Inline a helper when** it has one caller, or its callers keep adding parameters to bend it.
-- A function fits on one screen and stays at one level of abstraction. Long is fine if it reads top to bottom; deeply nested is not.
+- A function fits on one screen and stays at one level of abstraction. Long is fine if it reads top to bottom; deeply nested is not, and helpers defined inside a long function mean its sections want to be functions.
 - Private helpers sit next to their caller, below it. Shared ones go in the module that owns the concept, never in `utils.py` / `helpers.ts` grab bags.
 
 ## Reuse
@@ -81,7 +81,7 @@ Coding agents make these mistakes more than people do. Each has the rule that pr
 - Delete the old path in the same PR that adds the new one. No `_v2`, no flag kept "just in case".
 
 ## Smells (fix or justify)
-Speculative generality (options, plugins, base classes with one subclass) · pass-through layers · manager/handler/processor names · boolean parameters that switch behavior · god files over ~500 lines · global mutable state · the same constant in two places · `utils` grab bags · circular imports · DTO-to-DTO mapping chains with no logic · comments explaining what instead of why.
+Speculative generality (options, plugins, base classes with one subclass) · pass-through layers · manager/handler/processor names · boolean parameters that switch between two behaviors (a knob that only turns one feature off is fine) · god files over ~500 lines · global mutable state (justify it with a one-line comment at the definition saying why it's safe) · the same constant in two places · `utils` grab bags · circular imports · DTO-to-DTO mapping chains with no logic · comments explaining what instead of why.
 
 Worked before/after pairs for the rules above (route split, hook + pure component, inlined wrapper, flag split, grab bag split, functional core): `references/examples.md`.
 
