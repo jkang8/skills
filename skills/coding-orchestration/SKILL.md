@@ -6,7 +6,7 @@ license: MIT
 metadata:
   hermes:
     tags: [orchestration, coding-agents, parallel, worktrees, claude-code, codex, opencode]
-    related_skills: [architecture, ui-design-system, repo-setup, doc-writing]
+    related_skills: [architecture, security, review, ui-design-system, repo-setup, doc-writing]
 ---
 
 # Coding orchestration (harness-agnostic)
@@ -18,7 +18,7 @@ If `coding-orchestration.local.md` exists in this skill's folder or in `override
 
 ## Other skills
 - UI: the brief tells the agent to follow `ui-design-system` (Claude Code loads it as a user skill; for other harnesses, paste its rules). Run its review checklist before showing the user screenshots or video.
-- Code: the brief tells the agent to follow `architecture`.
+- Code: the brief tells the agent to follow `architecture`, and `security` when the change touches input, auth, secrets, deps or data.
 - New repos: scaffold with `repo-setup` unless the user names another stack.
 - Docs: follow `doc-writing`. Docs change in the same PR as the code.
 
@@ -56,7 +56,7 @@ If `coding-orchestration.local.md` exists in this skill's folder or in `override
 
 ## 4. Integrate
 - Agent: test first, implement, rebase on `origin/main`, run the gate, open a PR, status `in-review`.
-- Orchestrator: check the diff against owned paths (out of scope -> send back), check gate output and CI, then start an independent reviewer run (`references/review.md`) and relay its verdict. Report to the user once it passes. Merge order follows the board.
+- Orchestrator: check the diff against owned paths (out of scope -> send back), check gate output and CI, then start an independent reviewer run with the `review` skill (`review.sh <repo> <branch>`, then a fresh session) and relay its verdict. Report to the user once it passes. Merge order follows the board.
 - After a merge, tell in-flight agents to rebase. Conflicts go to the agent owning the path, never to the orchestrator.
 - Clean up: `git worktree remove`, kill the tmux session, delete the claim, mark the row done.
 
@@ -76,7 +76,7 @@ The run: fetch -> new worktree + branch `improve/<stamp>` -> haiku summarizes si
 ## Checklist before reporting a PR
 1. The diff touches only the task's owned paths, or paths it held a lock for.
 2. The gate passed after the final rebase, and its output is in the PR body.
-3. The independent reviewer returned `VERDICT: PASS`.
+3. The independent reviewer (the `review` skill) returned `VERDICT: PASS`.
 4. Model and effort are recorded in the PR body.
 5. Claim and locks are released; the board row says `in-review`.
 

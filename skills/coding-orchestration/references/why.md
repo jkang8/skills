@@ -10,5 +10,5 @@
 - **`mkdir` for claims and locks.** It is atomic on every local filesystem, so exactly one claimer wins without a lock server.
 - **Agents don't message each other.** Relaying through the orchestrator keeps one place that knows the state of every task.
 - **Conflicts go to the path owner.** The owner knows the intent of the conflicting code; the orchestrator would be guessing.
-- **Independent reviewer.** The author and the orchestrator share the brief's assumptions. A fresh session with only the checklist doesn't. See `review.md`.
+- **Independent reviewer.** The author and the orchestrator share the brief's assumptions. A fresh session with only the checklist doesn't. See the `review` skill.
 - **Board outside the repo.** A board inside the repo ends up in commits.

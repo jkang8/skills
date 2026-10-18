@@ -1,6 +1,6 @@
 # skills
 
-Five agent skills you can drop into Claude Code or Hermes. Each one is a single `SKILL.md` with a short trigger description; personal details (registry names, paths, cost policy) go in a local override file, so the shared text stays generic.
+Seven agent skills you can drop into Claude Code or Hermes. Each one is a single `SKILL.md` with a short trigger description; personal details (registry names, paths, cost policy) go in a local override file, so the shared text stays generic.
 
 | Skill | Use it when | What it gives the agent |
 |---|---|---|
@@ -8,6 +8,8 @@ Five agent skills you can drop into Claude Code or Hermes. Each one is a single 
 | `ui-design-system` | building any product UI | tokens, a closed component set, UX and interaction rules, AI-native patterns, a banned-slop list, a review checklist |
 | `doc-writing` | writing a README, guide, ADR or AGENTS.md | Diátaxis doc types, writing rules, what goes in vs. stays out, ADR shape, doc-bloat budgets, a review checklist |
 | `architecture` | structuring or reviewing code | deep modules, one-way dependencies, functional core, when to extract or inline a helper, smells, a review checklist |
+| `security` | code touches input, auth, secrets, deps or data | secrets, input validation, auth per object, privacy, supply chain, agent-specific risks; `sec_check.sh` runs ruff S, gitleaks, pip-audit, pnpm audit |
+| `review` | reviewing a branch before it's reported or merged | diff scope, routing to the skills that apply, mechanical checks, one fresh-reviewer prompt; `review.sh` does steps 1-3 |
 | `repo-setup` | starting a new repo | a uv + Pydantic + FastAPI + Postgres backend, a pnpm + Vite + React + TS frontend, a shadcn registry layout, Makefile gate, done-when criteria |
 
 The skills reference each other (orchestration briefs pull in the others), so install them together.
@@ -18,7 +20,7 @@ Claude Code loads user skills from `~/.claude/skills/<name>/SKILL.md`, and a sym
 
 ```sh
 git clone https://github.com/<owner>/skills ~/code/skills
-for s in coding-orchestration architecture ui-design-system doc-writing repo-setup; do
+for s in coding-orchestration architecture security review ui-design-system doc-writing repo-setup; do
   ln -s ~/code/skills/skills/$s ~/.claude/skills/$s
 done
 ```
@@ -43,6 +45,8 @@ link ui-design-system creative
 link doc-writing productivity
 link repo-setup software-development
 link architecture software-development
+link security software-development
+link review software-development
 ```
 
 The categories are only folders; pick any. If Hermes edits a linked `SKILL.md` itself, it may replace the link with a plain file. Check with `ls -l` after a self-edit and move real changes into the repo or your override.
