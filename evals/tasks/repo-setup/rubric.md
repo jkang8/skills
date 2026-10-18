@@ -7,5 +7,5 @@ Score each item 1 (clearly met) or 0 (not met or can't tell).
 6. Frontend (when present): pnpm, Vite, React, strict TypeScript, Tailwind; API types generated from OpenAPI rather than hand-written.
 7. A Makefile (or justfile) with dev, test and gate targets, and the gate runs lint, types and tests.
 8. .env.example lists the variables with no real values, and .env is gitignored.
-9. CLAUDE.md exists with commands and rules (AGENTS.md pointing at it is a plus), plus a short README.
+9. AGENTS.md is a real file with the commands and rules, CLAUDE.md contains only `@AGENTS.md` (not a symlink, no other content), and there is a short README.
 10. Scaffolds only what the task needs (no frontend for an API-only task, no extra services).
