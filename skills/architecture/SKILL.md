@@ -18,17 +18,17 @@ Any code an agent writes or reviews in your repos: new features, refactors, revi
 If `architecture.local.md` exists in this skill's folder or in `overrides/` at the root of the checkout this skill came from (resolve symlinks to find it), read it first. Its rules add to these and win on conflict.
 
 ## Core rules
-1. **Deep modules over shallow ones.** A module earns its place by hiding a lot behind a small interface (Ousterhout). A wrapper that forwards arguments and adds a name is cost, not structure.
-2. **Hide decisions, not just code.** Split along things likely to change independently: a data source, a rule set, a vendor API, the UI (Parnas). Each decision lives in exactly one module.
-3. **Functional core, imperative shell.** Business logic is pure functions over typed data (Pydantic models, TS types). I/O (DB, HTTP, files, clock, randomness) sits at the edges and is passed in. Pure code gets the tests; the shell stays thin.
+1. **Deep modules over shallow ones.** A module earns its place by hiding a lot behind a small interface (Ousterhout). A wrapper that only forwards its arguments is cost, not structure (a dispatcher that picks between implementations is the exception). Each piece of knowledge lives in one place; the same format or rule known in two modules is leakage.
+2. **Hide decisions, not just code.** List the decisions that are hard or likely to change (a data source, a rule set, a vendor API, the UI) and give each one a module that hides it (Parnas). Don't split along processing steps (parse module, validate module, save module); that spreads every decision across all of them.
+3. **Functional core, imperative shell.** The core is pure functions that take and return plain values (Pydantic models, TS types), never I/O handles. A thin shell does the I/O (DB, HTTP, files, clock, randomness), passes values in and acts on what comes back (Bernhardt). The core gets the tests, without doubles; the shell stays thin, with few conditionals.
 4. **Dependencies point one way.** routes -> services -> domain; UI -> API client -> generated types. Domain code never imports frameworks, routers or ORM sessions. No cycles.
 5. **Types are the contract.** Validate at the boundary once, then trust the types inside. Make invalid states unrepresentable (enums, discriminated unions, frozen models) instead of checking flags everywhere.
 
 ## Helpers vs. locality
-Default to locality: keep behavior where it's used, so a reader sees what a thing does without jumping files (locality of behavior).
+Default to locality: make what a unit does obvious from the unit itself, so a reader doesn't jump files to learn it (Gross). That doesn't mean inlining everything: a call with a clear name shows behavior while its implementation lives elsewhere. It trades against DRY; prefer locality until the rule of three says otherwise.
 - **Extract a helper when** it's used in 3+ places with the same meaning (rule of three), OR it names a real domain concept (`business_days_between`), OR it isolates something hard (date math, money, parsing) worth its own tests.
 - **Don't extract when** it's used once, the name just restates the body (`get_user_by_id_from_db`), or callers would need flags to vary it. Two similar blocks that may diverge stay duplicated: duplication is cheaper than the wrong abstraction (Metz).
-- **Inline a helper when** it has one caller, or its callers keep adding parameters to bend it.
+- **Inline a helper when** it has one caller, or callers keep adding parameters and conditionals to bend it (Metz): inline it back into every caller, keep only what each one needs, delete the rest, and re-extract only if a better abstraction shows up.
 - A function fits on one screen and stays at one level of abstraction. Long is fine if it reads top to bottom; deeply nested is not, and helpers defined inside a long function mean its sections want to be functions.
 - Private helpers sit next to their caller, below it. Shared ones go in the module that owns the concept, never in `utils.py` / `helpers.ts` grab bags.
 
@@ -42,7 +42,7 @@ Default to locality: keep behavior where it's used, so a reader sees what a thin
 - One reason to change per module. Signs it's mixed: a function that queries, decides and formats; a component that fetches and renders; a model with HTTP code.
 - Config, secrets and environment come in through one settings object, never read ad hoc.
 - Errors: raise typed errors in the core, translate them to HTTP/UI messages in the shell. Never swallow them.
-- Side effects are visible in the signature (it takes a `db`, `client`, `now`).
+- Shell functions show their side effects in the signature (they take a `db`, `client`, `now`); core functions take the values those produce.
 
 ## Scale to repo size
 | Repo | Shape | Rules that apply |
@@ -75,7 +75,7 @@ Coding agents make these mistakes more than people do. Each has the rule that pr
 `scripts/check_templates.sh` proves both templates catch their violations.
 
 ## Evolution rules
-- Tidy first, in its own commit: rename, move or extract with no behavior change, then make the behavior change in the next commit.
+- Never mix tidying and behavior in one commit (Beck). Tidy first when it makes the change easier; tidying after, later or never is a judgment call, not a failure.
 - No unrelated refactors in a feature PR. A tidy the feature needs is fine; anything else is its own PR.
 - Restructure when the third feature makes the current shape hurt (rule of three applies to structure too), not before.
 - Delete the old path in the same PR that adds the new one. No `_v2`, no flag kept "just in case".

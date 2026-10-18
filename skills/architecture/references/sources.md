@@ -1,11 +1,11 @@
 # Sources
 
-All general knowledge, not re-read for this version (the skill this one was generalized from marks them the same way). Each line names the idea this skill takes from the source.
+Read 2026-10-18 unless marked **known** (general knowledge, not re-read). Each line says what was read and what the skill takes from it.
 
-- Ousterhout, *A Philosophy of Software Design*: deep modules, information hiding, the cost of shallow wrappers.
-- David Parnas, "On the Criteria To Be Used in Decomposing Systems into Modules" (1972): split along decisions likely to change.
-- Gary Bernhardt, "Boundaries" (talk): functional core, imperative shell.
-- Sandi Metz, "The Wrong Abstraction": duplication is cheaper than the wrong abstraction.
-- Carson Gross, "Locality of Behaviour": keep behavior where it's used.
-- Kent Beck, *Tidy First?*: small structural changes separate from behavior changes.
-- Martin Fowler, *Refactoring*: the smell catalog.
+- **Ousterhout, *A Philosophy of Software Design*** (read: summary, [Derek Sivers' book notes](https://sive.rs/book/PoSD); no talk transcript found). Deep modules put a lot of functionality behind a simple interface. Pass-through methods are a red flag, but dispatchers are a legitimate exception. Information leakage means the same knowledge lives in several places. A simple interface beats a simple implementation. Design the normal case to cover edge cases.
+- **Parnas, "On the Criteria To Be Used in Decomposing Systems into Modules"** (CACM 1972; read: primary, [digitized reprint](https://www.math.pku.edu.cn/teachers/qiuzy/plan/lits/On%20the%20Criteria%20To%20Be%20Used%20in%20Decomposing%20Systems%20into%20Modules.htm)). Splitting by processing steps (the flowchart) is worse for change, parallel work and understanding. Instead, start from a list of difficult or likely-to-change decisions and hide each in a module. A module is a responsibility assignment, not a subprogram.
+- **Bernhardt, "Boundaries"** (SCNA 2012; read: summary, [talk page](https://www.destroyallsoftware.com/talks/boundaries) and [functional core, imperative shell](https://www.destroyallsoftware.com/screencasts/catalog/functional-core-imperative-shell); no transcript). Simple values are the boundaries between components. A pure core is surrounded by an imperative shell that does the I/O and acts on the values the core returns. The core tests without doubles, and the shell has few conditionals.
+- **Metz, "The Wrong Abstraction"** (read: primary, [sandimetz.com](https://sandimetz.com/blog/2016/1/20/the-wrong-abstraction)). Duplication is far cheaper than the *wrong* abstraction. Wrong abstractions grow by parameters plus conditionals and survive on sunk cost. The fix is to inline back into every caller, prune, and re-extract if a better abstraction appears.
+- **Gross, "Locality of Behaviour"** (read: primary, [htmx.org essay](https://htmx.org/essays/locality-of-behaviour/)). A unit's behavior should be obvious from the unit alone. Surfacing behavior is not the same as inlining its implementation. It explicitly trades against DRY and separation of concerns, as much as is practical.
+- **Beck, *Tidy First?*** (read: excerpts, [Beck's newsletter](https://newsletter.kentbeck.com/p/getting-untangled), partly paywalled, and [a review](https://henrikwarne.com/2024/01/10/tidy-first/)). Keep structural changes apart from behavior changes, in separate commits or PRs. Whether to tidy first, after, later or never is a judgment call.
+- **Fowler, *Refactoring*** (known): the smell catalog.
