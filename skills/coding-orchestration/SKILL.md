@@ -46,7 +46,7 @@ If `coding-orchestration.local.md` exists in this skill's folder or in `override
 - One git worktree + branch per agent: `git -C <repo> worktree add ../<repo>-wt/<task-id> -b agent/<task-id> origin/main`.
 - Live checkouts that the orchestrator or a service runs from are off-limits; they move only by `git pull --ff-only` after a merge.
 - One tmux session per agent, `<repo>-<task-id>`, started in its worktree.
-- Shared mutable state outside git (DBs, ports, caches, scratch) gets a per-agent copy or path (`TMPDIR`, port offset, scratch agent home such as `HERMES_HOME`).
+- Shared mutable state outside git (DBs, ports, caches, scratch) gets a per-agent copy or path (`TMPDIR`, port offset, scratch agent home such as `HERMES_HOME`). Read-only shared inputs are fine.
 
 ## 3. Coordinate
 - Claim: `mkdir <agents-dir>/<repo>/claims/<task-id>` (atomic, one winner); write the session name in it; remove it on done or abandon.
