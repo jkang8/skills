@@ -1,0 +1,39 @@
+# Runs `make gate` on pull requests and on main. All check logic lives in the Makefile, not here.
+# The real privacy denylist is personal and never leaves the maintainer's machine, so CI runs the check with a
+# placeholder denylist: it still scans for emails, secret-shaped strings, home-directory paths and personal mail
+# domains, but not for the maintainer's own terms. The pre-commit hook runs the full check locally.
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  gate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      # A compiled test module holds the secret-shaped strings its fixtures build at run time, and gitleaks flags it.
+      PYTHONDONTWRITEBYTECODE: "1"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
+      - name: Install pnpm and ffmpeg (with libass, so the demo-video tests run)
+        run: |
+          npm install --global pnpm@12.14.0
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
+      - name: Placeholder privacy config
+        run: |
+          echo '# no personal terms in CI' > "$RUNNER_TEMP/denylist.txt"
+          echo "PRIVACY_DENYLIST=$RUNNER_TEMP/denylist.txt" > "$RUNNER_TEMP/privacy.env"
+          echo "PRIVACY_TERMS='zzz-no-such-t''erm-zzz'" >> "$RUNNER_TEMP/privacy.env"
+          echo "PRIVACY_CONFIG=$RUNNER_TEMP/privacy.env" >> "$GITHUB_ENV"
+      - run: make gate
