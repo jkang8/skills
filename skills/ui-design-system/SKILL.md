@@ -46,10 +46,22 @@ Adding one: only when composing the set can't meet the need. First write three l
 - Keyboard: everything reachable by Tab, visible focus rings, Esc closes layers, ⌘K opens Command.
 - Accessibility: WCAG AA in both themes, labels on every input, `aria-label` on icon-only buttons.
 - Copy: short, specific, sentence case ("3 invoices overdue", not "Unlock hidden revenue"). No marketing copy in the app.
-- AI features explain, summarize or speed up a task, show their source, and fall back to deterministic output when AI is unavailable.
+- AI features earn their place by doing work, not describing it: notice things before anyone asks, prepare the fix, hand a person a decision, and show the source. Numbers people must audit (totals, rules, statistics) stay deterministic; AI reads, flags and drafts. Fall back to deterministic output when AI is unavailable.
 
 ## Interaction, hierarchy and AI-native rules
 Follow `references/patterns.md`: exact transition properties, entry from `scale(0.95)`, 24px hit targets, skeleton show delay and minimum time, optimistic updates with Undo, ellipsis labels, emphasis by weight and color before size, quiet chrome, strict alignment, and the AI patterns (footprints, inline citations, muted "Generated" label, progress against a plan, edit/accept/undo, honest limits).
+
+## Scores, tiers and thresholds
+For any value bucketed into levels (confidence, risk, urgency, priority, health, impact):
+- **Define each scale once** in one pure, tested module with named threshold constants. UI reads tiers from it, never hardcodes cutoffs.
+- **One scale per meaning.** Don't reuse a color or shape for two different scales on one screen.
+- **Quiet by default, loud only where action is needed.** Most tiers are neutral; only the tier that needs a decision gets a semantic tone. Max one semantic color per row.
+- **Never color alone.** Pair tone with a word and/or shape ("High", a segmented meter, "Due in 6 days"). AA contrast in both themes.
+- **Order by weight before hue.** Rank magnitude with weight and position; reserve color for state.
+- **Relative bands beat fixed numbers** when users differ in scale (bands as a share of their own baseline).
+- **Show the rule.** Hover or footprint states the value and the threshold it crossed ("0.91, High at 0.85"). Uncertain values show as a range (thin interval bar), not a gauge or a falsely precise number.
+- **Low-confidence AI output is held, not hidden:** labeled "Needs review" and kept out of headline totals.
+- **Sort by what the user acts on** (urgency, then impact) and label the sort.
 
 ## Banned (slop indicators)
 Purple/blue gradients · glassmorphism · ✨ sparkle icons · emoji in UI · "AI-powered" or "Magic" badges · robot or brain mascots · hero sections inside an app · lorem ipsum · stock illustrations · shadows on every card · rounded-2xl/3xl · centered-everything layouts · gradient text · animated blobs · typing-effect text for content · more than one accent color.
@@ -57,10 +69,11 @@ Purple/blue gradients · glassmorphism · ✨ sparkle icons · emoji in UI · "A
 ## Review checklist (before showing the user)
 1. Screenshot every screen in light and dark at 1440×900, and the main screen at 390px wide.
 2. Grep for violations: hex colors and palette classes outside tokens, `rounded-2xl|3xl`, `bg-gradient`, `backdrop-blur`, emoji, components imported from outside `components/ui/`.
-3. Check each screen against the banned list, the UX rules and `references/patterns.md`. Fix, then re-shoot.
+3. Check each screen against the banned list, the UX rules and `references/patterns.md`. Fix, then re-shoot. Watch grid rows: a panel stretched to match a taller neighbor leaves dead space at its bottom (use `items-start` or size the row to content). When a headline figure differs from a total shown elsewhere on the page, show the bridge (total -> adjustments -> headline) on the page; a reader asks about any unexplained gap.
 4. Check loading, empty and error states by forcing each one.
 5. Walk the NN/g heuristics once: system status visible, Undo available, consistent with the rest of the app, errors prevented or explained, shortcuts for experts.
 6. Every AI output shows its footprints and its sources, and can be edited or undone.
-7. `make gate` calls `scripts/design_lint.py <web dir>` and it prints `design lint: clean`.
+7. Every scored or tiered value comes from one scale module, shows its rule, and doesn't rely on color alone.
+8. `make gate` calls `scripts/design_lint.py <web dir>` and it prints `design lint: clean`.
 
 Sources and what each contributed: `references/sources.md`. Re-read it when a design call isn't covered here.

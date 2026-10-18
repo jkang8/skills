@@ -8,6 +8,12 @@ One private repo holds your restyled shadcn components as a shadcn registry, sha
 - **Updates:** fix in the registry first, then re-run `shadcn add --overwrite` in each app. Local edits in an app are allowed only when truly app-specific, and noted in that app's INVENTORY.md. Tradeoff: copied components don't auto-update; switch to a published package once ~5 apps share it.
 - **Its own gate:** lint, types, Vitest, `shadcn build` clean, domain guard, and Playwright screenshots of its catalog.
 
+## Moving an app onto the registry
+The switch must not change the UX: the app re-adds its generic components from the registry (`shadcn add --overwrite`), app-specific ones stay app code, and the PR carries before/after screenshots of every screen in both themes with any difference listed. When the app's tokens already passed review, the registry adopts them so the switch is pixel-identical. Don't switch onto a registry version with open accessibility bugs the app doesn't have; fix them in the registry first.
+
+## Why a registry, not an npm package
+No build, versioning or Tailwind `@source` plumbing, and apps own the copied code.
+
 ## Modular
 Each piece can be used, tested and replaced on its own, and layers only depend downward.
 - **Layers:** `tokens/` (CSS variables, light and dark, the only place colors and sizes are defined) -> `primitives/` (Button, Input, Badge... thin wrappers over Radix/shadcn) -> `composites/` (DataTable, Command, Stat, EmptyState, AppShell, built only from primitives). Apps import from the library, never the reverse. Composites never import app code or fetch data; they take props.

@@ -38,6 +38,8 @@ If `security.local.md` exists in this skill's folder or in `overrides/` at the r
 - Collect the minimum. Personal, financial or health data is synthetic in dev, demos and tests, always. Real health data (PHI) needs a stack covered by the required agreements (in the US, a BAA); consumer AI plans aren't one.
 - Logs carry IDs, not contents. No personal data in error messages, analytics or LLM prompts unless the user asked for that flow.
 - Public repos run a privacy guard against a denylist kept outside the repo.
+- Side projects never name the user's employer anywhere: code, docs, commits, PR titles and bodies. Phrase scope limits neutrally ("Out of scope: <one-line area>"). Enforce it with a gate check that reads a denylist from outside the repo, checks tracked files, file names and commit messages, and is tested with a made-up term so the real one never enters the repo. A name already in history needs a rewrite plus force-push, which is the user's call; do it before the repo is shared.
+- When a denylist guard trips on something already public (e.g. the owner handle inside GitHub's generated merge text), exempt that exact generated pattern, with the value read from the git remote, and keep the term denied everywhere else. Test both cases. Never loosen the term itself.
 
 ## Dependencies and supply chain
 - Lockfiles committed (`uv.lock`, `pnpm-lock.yaml`). New deps need a reason: maintained, widely used, license fits. Prefer stdlib or an existing dep.
