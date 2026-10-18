@@ -1,6 +1,6 @@
 # skills
 
-Seven agent skills (coding orchestration, architecture, security, review, UI design system, doc writing, repo setup), written to work as-is in Claude Code and Hermes. The repo is meant to be public: everything personal lives in local override files that are never committed.
+Eight agent skills (coding orchestration, architecture, security, review, UI design system, doc writing, repo setup, demo video), written to work as-is in Claude Code and Hermes. The repo is meant to be public: everything personal lives in local override files that are never committed.
 
 ## Map
 - `skills/<name>/SKILL.md`: one skill per folder, frontmatter `name`, `description`, `license`. Supporting files in `skills/<name>/references/`; checks in `skills/<name>/scripts/` (stdlib Python, tests on `fixtures/`).

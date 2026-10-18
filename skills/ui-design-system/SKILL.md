@@ -1,18 +1,18 @@
 ---
 name: ui-design-system
 description: "Use when building UI: tokens, closed component set, review."
-version: 1.1.0
+version: 1.2.0
 license: MIT
 metadata:
   hermes:
     tags: [design, ui, ux, components, design-system, frontend, accessibility]
-    related_skills: [coding-orchestration, repo-setup]
+    related_skills: [coding-orchestration, repo-setup, demo-video]
 ---
 
 # UI design system
 
 ## When to use
-Any product UI the user asks for: dashboards, demos, internal tools. Put these rules in the coding agent's brief (see coding-orchestration). The agent that built the UI checks screenshots against the checklist before the user sees anything. For an independent review, see the `review` skill.
+Any product UI the user asks for: dashboards, demos, internal tools. Put these rules in the coding agent's brief (see coding-orchestration). The agent that built the UI checks screenshots against the checklist before the user sees anything. For an independent review, see the `review` skill. To record a captioned walkthrough of the UI, use the `demo-video` skill.
 
 The bar: tasteful, AI-native, slick, no AI slop. Reference points: Linear, Vercel, Stripe dashboards. Dense, calm, data-forward.
 
