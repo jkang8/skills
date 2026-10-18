@@ -19,6 +19,9 @@ GENERIC='/User[s]/|/home/[a-z]|@gmai[l]|~/\.herme[s]|\$HOME/\.herme[s]'
 WORK="$(mktemp -d)"; trap 'rm -rf "$WORK"' EXIT
 cd "$REPO"
 git ls-files --cached --others --exclude-standard -z | xargs -0 -I{} sh -c '[ -e "$1" ] || [ -L "$1" ] || exit 0; mkdir -p "$2/$(dirname "$1")"; cp -P "$1" "$2/$1"' _ {} "$WORK"
+# Git hooks export GIT_DIR/GIT_INDEX_FILE; past this point every git call must target the temp copy
+# or the real repo explicitly, never whatever the hook environment points at.
+unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE GIT_PREFIX GIT_COMMON_DIR GIT_OBJECT_DIRECTORY
 printf '%s\n' "${PRIVACY_ALLOW:-}" | while IFS= read -r rule; do
   [ -n "$rule" ] || continue
   f="${rule%%:*}"; line="${rule#*:}"
@@ -34,7 +37,7 @@ PYTHONPATH="${PRIVACY_GUARD_PYTHONPATH:-}" MEMORY_STEM_DENYLIST="$PRIVACY_DENYLI
 echo "== term grep (contents, file names, commit messages)"
 hits="$( (cd "$WORK" && grep -rniE --exclude-dir=.git "$GENERIC|$PRIVACY_TERMS" . || true)
   (cd "$WORK" && git ls-files | grep -iE "$GENERIC|$PRIVACY_TERMS" | sed 's/^/file name: /' || true)
-  (git log --format=%B 2>/dev/null | grep -iE "$GENERIC|$PRIVACY_TERMS" | sed 's/^/commit message: /' || true) )"
+  (git -C "$REPO" log --format=%B 2>/dev/null | grep -iE "$GENERIC|$PRIVACY_TERMS" | sed 's/^/commit message: /' || true) )"
 if [ -n "$hits" ]; then echo "$hits"; fail=1; else echo "term grep: clean"; fi
 
 [ "$fail" -eq 0 ] && echo "PRIVACY CHECK PASS" || { echo "PRIVACY CHECK FAIL"; exit 1; }
