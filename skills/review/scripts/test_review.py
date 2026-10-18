@@ -52,6 +52,15 @@ class Review(unittest.TestCase):
         self.assertIn("FAIL  arch_check", self.run_.stdout)
         self.assertIn("ok    gate", self.run_.stdout)
 
+    def test_launch_command_uses_review_claude_when_set(self):
+        env = {**os.environ, "REVIEW_OUT": str(self.out) + "2", "REVIEW_NO_FETCH": "1", "REVIEW_SKIP_SEC": "1",
+               "REVIEW_GATE": "true", "REVIEW_GOAL": "# g", "REVIEW_CLAUDE": "wrapper run acct claude"}
+        r = subprocess.run(["sh", str(HERE / "review.sh"), str(self.repo), "feature", "main"],
+                           capture_output=True, text=True, env=env)
+        cmd = next(line for line in r.stdout.splitlines() if " -p " in line and "prompt.md" in line)
+        self.assertIn('&& wrapper run acct claude -p "', cmd)
+        self.assertIn("claude -p", next(l for l in self.run_.stdout.splitlines() if "prompt.md" in l and " -p " in l))
+
     def test_launch_command_is_read_only(self):
         cmd = next(line for line in self.run_.stdout.splitlines() if "claude -p" in line)
         self.assertIn('--tools "Read,Glob,Grep"', cmd)
