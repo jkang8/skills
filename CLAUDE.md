@@ -3,12 +3,13 @@
 Four agent skills (coding orchestration, UI design system, doc writing, repo setup), written to work as-is in Claude Code and Hermes. The repo is meant to be public: everything personal lives in local override files that are never committed.
 
 ## Map
-- `skills/<name>/SKILL.md`: one skill per folder, frontmatter `name`, `description`, `license`. Supporting files in `skills/<name>/references/`.
+- `skills/<name>/SKILL.md`: one skill per folder, frontmatter `name`, `description`, `license`. Supporting files in `skills/<name>/references/`; checks in `skills/<name>/scripts/` (stdlib Python, tests on `fixtures/`).
 - `overrides/<name>.example.md`: template for a user's local `<name>.local.md`.
 - `scripts/privacy_check.sh`: the privacy gate.
 
 ## Commands
-- Gate: `scripts/privacy_check.sh`. Passes with `PRIVACY CHECK PASS`; anything else is a fail. Install it as `.git/hooks/pre-commit` (see README).
+- Gate: `make gate` (script tests, `doc_check.py` on this repo, privacy check). Passes when it ends with `PRIVACY CHECK PASS`.
+- Privacy check alone: `scripts/privacy_check.sh`. Install it as `.git/hooks/pre-commit` (see README).
 
 ## Rules
 - Run the gate before every commit. It fails closed without its local config; don't work around that.

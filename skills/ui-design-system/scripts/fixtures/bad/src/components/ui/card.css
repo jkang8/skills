@@ -1,0 +1,1 @@
+.card { background: linear-gradient(90deg, red, blue); transition: all 200ms; backdrop-filter: blur(8px); }

@@ -1,0 +1,2 @@
+:root { --bg: #ffffff; --fg: #18181b; --accent: oklch(0.6 0.15 250); }
+.dark { --bg: #09090b; --fg: #fafafa; }

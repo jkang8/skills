@@ -68,4 +68,4 @@ compose.yaml  Makefile  .env.example  CLAUDE.md  README.md  [.github/workflows/c
 ```
 
 ## Done when
-`make dev` brings up db, api and web from a fresh clone. `make gate` passes locally (and in CI, if enabled). One route goes end to end (a DB row, then an API response, then a generated type, then rendered in the UI), with a test at each layer.
+`make gate` must call `scripts/stack_check.py <repo>` (stdlib Python; layout, Makefile targets, `.env.example`, the AGENTS.md symlink). `make dev` brings up db, api and web from a fresh clone. `make gate` passes locally (and in CI, if enabled). One route goes end to end (a DB row, then an API response, then a generated type, then rendered in the UI), with a test at each layer.
