@@ -10,6 +10,7 @@
 - One git worktree + branch per agent: `git -C <repo> worktree add ../<repo>-wt/<task-id> -b agent/<task-id> origin/main`.
 - Live checkouts that the orchestrator or a service runs from are off-limits; they move only by `git pull --ff-only` after a merge.
 - One herdr agent per worktree, named `<repo>-<task-id>`, in a dedicated herdr session so agents never land in the user's panes:
+  - Run that session as its own headless server, apart from the user's: `herdr --session <s> server` (keep it alive with a launchd/systemd job). Pass `--session <s>` on every command; without it, commands hit the user's default session and agents open in the panes they're working in.
   - `herdr --session <s> workspace create --cwd <worktree> --label <repo>-<task-id> --no-focus`, take `.result.root_pane.pane_id`
   - `herdr --session <s> agent start <repo>-<task-id> --kind claude --pane <pane> -- <harness args>`
   - Install the harness hook first (`herdr integration install claude`) so states are reported, not guessed from the screen.
@@ -20,5 +21,6 @@
 - Claim: `mkdir <agents-dir>/<repo>/claims/<task-id>` (atomic, one winner); write the session name in it; remove it on done or abandon.
 - Lock anything outside owned paths: `mkdir <agents-dir>/<repo>/locks/<path-with-slashes-as-__>`; release after commit. Lock taken -> report `blocked: <path> held by <task>`, don't edit.
 - Status: one-line appends to `<agents-dir>/<repo>/status/<task-id>.md`. The orchestrator reads these plus `herdr agent read <name> --source recent-unwrapped` (or `tmux capture-pane`) and relays between agents; agents don't message each other.
+- Blocked agent (waiting at a permission prompt or question): `agent prompt` refuses it with `agent_blocked`. Read the pane (`herdr --session <s> agent read <name> --source recent-unwrapped --lines 80`), then answer with `agent send-keys <name> <keys>` (e.g. `down`, `enter`). Pick the one-time yes, never "always allow"; decline anything outside the brief's scope and tell the user. Find blocked agents with `agent list` or `agent wait <name> --until blocked`.
 - Herdr has no message bus: `agent prompt` types into another agent's terminal and `agent wait` blocks on its state. Keep it hub and spoke (one lead prompts and waits on its workers), long results go to files, and the claim/lock/status files above stay the shared state.
 - Every brief includes: the task row, owned paths, these claim/lock/status rules, "edit nothing outside owned paths without a lock", "rebase on origin/main before the PR", the gate command, "never merge, never force-push to main".
