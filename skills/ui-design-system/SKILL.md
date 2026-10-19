@@ -1,7 +1,7 @@
 ---
 name: ui-design-system
 description: "Use when building UI: tokens, closed component set, review."
-version: 1.3.2
+version: 1.3.3
 license: MIT
 metadata:
   hermes:
@@ -50,6 +50,7 @@ Adding one: only when composing the set can't meet the need. First write three l
 - Sentences: one idea each, about 12 words at most, with no parentheticals, semicolons or chained clauses.
 - State what is, not what isn't: "You approve every draft", not "Nothing is sent without you". Explain totals with layout (sections), not negative tags. Hide zero-states like "$0 handled".
 - Show a figure once per card, never twice. At most one pill per row; the rest is plain text.
+- Don't template list items with labeled slots (Happened / Impact / Next). A list item is a specific title sentence (names, dates, numbers), one muted meta line, the amount once, and one action. Specificity replaces labels.
 - Write for the least technical reader: one action leads per view, detail is one click away, and the trust guarantee is said once (more in `references/clarity.md`).
 - AI features earn their place by doing work, not describing it: notice things before anyone asks, prepare the fix, hand a person a decision, and show the source. Numbers people must audit (totals, rules, statistics) stay deterministic; AI reads, flags and drafts. Fall back to deterministic output when AI is unavailable.
 
