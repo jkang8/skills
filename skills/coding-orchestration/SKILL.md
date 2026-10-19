@@ -38,7 +38,7 @@ If `coding-orchestration.local.md` exists in this skill's folder or in `override
 
 ## 1-3. Plan, isolate, coordinate
 - Task board at `<agents-dir>/<repo>/board.md`, never in the repo. Each task has owned paths; parallelize only tasks with disjoint owned paths and no dependency, 2-4 agents at most.
-- One git worktree + branch per agent, one tmux session per agent. Live checkouts that the orchestrator or a service runs from are off-limits.
+- One git worktree + branch per agent, one herdr agent per worktree (tmux if herdr isn't installed). Live checkouts that the orchestrator or a service runs from are off-limits.
 - Claims and path locks are `mkdir`s (atomic, one winner); agents append one-line status updates and don't message each other.
 - Every brief includes: the task row, owned paths, the claim/lock/status rules, "edit nothing outside owned paths without a lock", "rebase on origin/main before the PR", the gate command, "never merge, never force-push to main".
 - Exact commands and reasons: `references/coordination.md`.
@@ -48,13 +48,13 @@ If `coding-orchestration.local.md` exists in this skill's folder or in `override
 - Orchestrator: check the diff against owned paths (out of scope -> send back), check gate output and CI, then report to the user with links and the gate output. Merge order follows the board.
 - Review isn't a step of this loop. For an independent review, see the `review` skill (its "When to use" says when one runs).
 - After a merge, tell in-flight agents to rebase. Conflicts go to the agent owning the path, never to the orchestrator.
-- Clean up: `git worktree remove`, kill the tmux session, delete the claim, mark the row done.
+- Clean up: `git worktree remove`, close the agent's herdr workspace, delete the claim, mark the row done.
 
 ## Improve loop (any repo, orchestrator-owned)
 A scheduled run that makes one gated improvement per run, as a PR: `scripts/improve.sh <repo> [signals-data-path]`. It never merges and has no review step: the gate is its check. The repo provides `make gate`, `<repo>/scripts/signals` and `IMPROVE.md`. Non-member items are dropped, the builder's environment is scrubbed, and a public repo should use `IMPROVE_WRAP`. The run, the trust rules and the cron line: `references/improve-loop.md`.
 
 ## Pitfalls
-- Long sessions live in tmux or the harness's background mode; the orchestrator isn't notified when they end. Say so, and poll on request or by cron.
+- Long sessions live in herdr (or tmux) and nobody pushes a notice when they end. With herdr, block on `herdr agent wait <name> --until done --until blocked` in the background; otherwise say so and poll on request or by cron.
 - Never two agents in one worktree, not even for a quick fix.
 - Coordination files stay under `<agents-dir>/`, never in the repo.
 
