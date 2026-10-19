@@ -13,6 +13,7 @@ Part of the ui-design-system rules; the checklist checks against this file.
 ## Hierarchy (Refactoring UI, Linear)
 - Build emphasis with weight and color before size. Mute secondary text instead of shouting the primary.
 - Use spacing and a background shift before adding a border. Chrome (sidebar, headers, tabs) stays quieter than content.
+- Rank magnitude with weight and position; reserve color for state.
 - Strict alignment: every edge lines up with something. Use one density per screen.
 
 ## AI-native patterns (Shape of AI, agent UX)
@@ -25,5 +26,7 @@ AI belongs inside the work, not in a separate chat page or a decoration.
 - **Suggestions in empty inputs:** 3-4 concrete examples drawn from the user's data, never generic prompts.
 - **Edit, accept, undo:** AI output is a draft the user can change, accept or revert. Nothing irreversible happens without a confirm.
 - **Honest limits:** state a caveat once, where it applies, in plain words.
+- **Agent timeline:** show what the agent did as a short run of steps (signed -> read -> flagged -> drafted).
+- **Drafted artifact:** the draft itself is the object the user approves, marked with a small "Drafted" chip. One filled button per view. Status is one muted line without labels ("Ready to hold · 15 claims · $1,582 · due Oct 21").
 - **Proactive agent inbox:** the home screen after setup is a queue of items the agent raised on its own: what it noticed, the stakes (money or a deadline), what it already prepared, Approve / Edit / Dismiss, and its footprint. Pair it with a short periodic brief (what it did, what's waiting, value protected) and an autonomy setting that defaults to suggest-only; nothing external is ever sent without a person.
 - **Real model, offline-safe demos:** use an actual LLM for what only a model can do (reading free text, drafting from evidence, extracting rules from documents), cache recorded outputs as fixtures so demos and videos run offline, and keep a live mode. Templated text styled to look like AI is the failure mode; if a feature is deterministic, don't present it as AI.
